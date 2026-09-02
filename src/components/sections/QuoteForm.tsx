@@ -204,6 +204,26 @@ export function QuoteForm() {
             subtitle="Tell us a bit about your home and we'll follow up with a free quote."
           />
 
+          <Reveal
+            delay={80}
+            className="mt-8 flex flex-col items-center gap-2 rounded-2xl border border-line bg-accent-soft px-6 py-7 text-center"
+          >
+            <p className="text-h4 text-ink">Fastest way to a quote</p>
+            <p className="text-small max-w-sm">
+              Text us a short video walking through your windows and we&rsquo;ll use it to
+              give you an accurate quote — no form required.
+            </p>
+            <a href={business.smsHref} className="btn-primary mt-2">
+              Text Us a Video
+            </a>
+          </Reveal>
+
+          <div className="mt-8 flex items-center gap-4 text-xs font-semibold tracking-wide text-ink-faint uppercase">
+            <span className="h-px flex-1 bg-line" />
+            Or fill out the form
+            <span className="h-px flex-1 bg-line" />
+          </div>
+
           <Reveal delay={100}>
             <form
               noValidate
@@ -398,20 +418,6 @@ export function QuoteForm() {
                 We&rsquo;ll never share your information. No spam, ever.
               </p>
             </form>
-          </Reveal>
-
-          <Reveal
-            delay={150}
-            className="mt-6 flex flex-col items-center gap-2 rounded-2xl border border-dashed border-line px-6 py-6 text-center"
-          >
-            <p className="text-sm font-semibold text-ink">Want an even more accurate quote?</p>
-            <p className="text-small max-w-sm">
-              Text us a short video walking through your windows and we&rsquo;ll use it to
-              fine-tune your quote.
-            </p>
-            <a href={business.smsHref} className="btn-secondary mt-1 !text-sm">
-              Text Us a Video
-            </a>
           </Reveal>
         </div>
       </Container>

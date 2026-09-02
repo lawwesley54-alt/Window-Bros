@@ -42,6 +42,13 @@
     -webkit-text-size-adjust: 100%;
   }
 
+  /* Offsets anchor-jump targets so the sticky navbar never covers the
+     top of the section (e.g. clicking "Get a Free Quote" from anywhere
+     on the page should land with the section fully visible below it). */
+  section[id] {
+    scroll-margin-top: 88px;
+  }
+
   body {
     background-color: var(--color-bg);
     color: var(--color-ink);
