@@ -5,13 +5,13 @@
  * an image URL inside a component. To replace an image, change its `src`
  * (and `srcSet` sizes if you keep responsive variants) in this one file.
  *
- * `hero`, `windowCleaning`, and `hardWater` use real photos the client
- * provided (saved to public/photos/). Everything else still uses
- * licensed Unsplash photography as a placeholder (free to use under the
- * Unsplash License) — these are NOT photos of actual Window Bros
- * customers or work, and should be swapped for real job photography as
- * it comes in. The Before & After section in particular still needs a
- * real matching before/after pair of the same window — none has been
+ * `hero`, `windowCleaning`, `hardWater`, `interiorWindows`, and `screens`
+ * use real photos the client provided (saved to public/photos/). Only
+ * `beforeAfterBefore`, `beforeAfterAfter`, and `cta` still use licensed
+ * Unsplash photography as a placeholder (free to use under the Unsplash
+ * License) — these are NOT photos of actual Window Bros customers or
+ * work. The Before & After section in particular still needs a real
+ * matching before/after pair of the same window — none has been
  * provided yet.
  *
  * NOTE: the Unsplash URLs below were selected from training knowledge
@@ -46,14 +46,14 @@ export const images = {
     position: "60% 45%",
   },
   interiorWindows: {
-    src: unsplash("photo-1449844908441-8829872d2607", 1200),
-    alt: "Bright living room with clean, sunlit interior windows",
-    position: "center",
+    src: "/photos/interior-window-view.jpg",
+    alt: "Crystal-clear window glass with a potted plant visible through it",
+    position: "50% 35%",
   },
   screens: {
-    src: unsplash("photo-1600566753086-00f18fb6b3ea", 1200),
-    alt: "Close-up of a clean window and screen on a modern home",
-    position: "center",
+    src: "/photos/window-screen.jpg",
+    alt: "A window screen removed for cleaning, leaning against an exterior wall",
+    position: "50% 55%",
   },
   hardWater: {
     src: "/photos/hard-water-stains.jpg",
