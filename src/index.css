@@ -1,0 +1,160 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------
+   WINDOW BROS DESIGN TOKENS
+   Single source of truth for color, type, spacing rhythm and motion.
+   Change values here to re-theme the entire site.
+--------------------------------------------------------------------- */
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+  /* Primary — near-black ink used for text and dark surfaces */
+  --color-ink: #0b0e14;
+  --color-ink-soft: #4a5163;
+  --color-ink-faint: #5b6472; /* darkened from a lighter gray to meet WCAG AA contrast on white/subtle backgrounds */
+
+  /* Background — white / extremely light gray */
+  --color-bg: #ffffff;
+  --color-bg-subtle: #f5f7fa;
+  --color-bg-muted: #eef1f5;
+
+  /* Accent — glass-inspired blue, matched to the Window Bros logo (#1F4F8B) */
+  --color-accent: #1f4f8b;
+  --color-accent-dark: #163a66;
+  --color-accent-light: #6fa0d8;
+  --color-accent-soft: #eaf1f8;
+
+  /* Secondary brand accent — the logo's orange, used sparingly */
+  --color-secondary: #e2650f;
+
+  /* Star ratings only — kept separate from brand accents */
+  --color-gold: #f2a93b;
+
+  --color-line: #e4e7ec;
+
+  --shadow-soft: 0 1px 2px rgba(11, 14, 20, 0.04), 0 8px 24px rgba(11, 14, 20, 0.06);
+  --shadow-lift: 0 4px 8px rgba(11, 14, 20, 0.06), 0 16px 40px rgba(11, 14, 20, 0.1);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background-color: var(--color-accent-soft);
+    color: var(--color-accent-dark);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------
+   TYPE SCALE — the only place heading/body sizes should be defined.
+--------------------------------------------------------------------- */
+@layer components {
+  .text-h1 {
+    @apply text-[2.5rem] leading-[1.1] font-semibold tracking-tight sm:text-5xl lg:text-[3.75rem] lg:leading-[1.05];
+  }
+  .text-h2 {
+    @apply text-3xl leading-[1.15] font-semibold tracking-tight sm:text-4xl lg:text-[2.75rem];
+  }
+  .text-h3 {
+    @apply text-xl leading-snug font-semibold tracking-tight sm:text-2xl;
+  }
+  .text-h4 {
+    @apply text-lg leading-snug font-semibold;
+  }
+  .text-eyebrow {
+    @apply text-xs font-semibold tracking-[0.14em] text-accent uppercase;
+  }
+  .text-body {
+    @apply text-base leading-relaxed text-ink-soft sm:text-[1.0625rem];
+  }
+  .text-body-lg {
+    @apply text-lg leading-relaxed text-ink-soft sm:text-xl;
+  }
+  .text-small {
+    @apply text-sm leading-relaxed text-ink-soft;
+  }
+
+  /* Buttons — shared base utilities repeated per variant so each class
+     works standalone (Tailwind v4 @apply cannot chain custom classes). */
+  .btn,
+  .btn-primary,
+  .btn-secondary,
+  .btn-ghost-light {
+    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-6 text-[0.9375rem] font-semibold tracking-wide whitespace-nowrap transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2;
+  }
+  .btn-primary {
+    @apply bg-accent text-white shadow-[0_1px_2px_rgba(11,14,20,0.08)] hover:bg-accent-dark hover:shadow-lift active:scale-[0.98];
+  }
+  .btn-secondary {
+    @apply border border-line bg-white text-ink hover:border-ink/20 hover:bg-bg-subtle active:scale-[0.98];
+  }
+  .btn-ghost-light {
+    @apply border border-white/30 bg-white/10 text-white backdrop-blur-sm hover:bg-white/20 active:scale-[0.98];
+  }
+
+  .container-page {
+    @apply mx-auto w-full max-w-[1200px] px-5 sm:px-8 lg:px-10;
+  }
+
+  .section-pad {
+    @apply py-16 sm:py-20 lg:py-28;
+  }
+
+  .card {
+    @apply rounded-2xl border border-line bg-white shadow-soft;
+  }
+
+  /* Fade-up reveal animation, disabled entirely under reduced motion.
+     min-width: 0 prevents flex/grid children from growing to their
+     text's max-content width and overflowing small viewports. */
+  .reveal {
+    min-width: 0;
+    opacity: 0;
+    transform: translateY(16px);
+    transition:
+      opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+  }
+}
