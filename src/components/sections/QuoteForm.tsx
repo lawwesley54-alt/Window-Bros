@@ -1,9 +1,10 @@
 import { useState, type ChangeEvent, type FormEvent } from "react";
+import { business } from "../../config/site";
 import { Container } from "../ui/Container";
 import { SectionHeading } from "../ui/SectionHeading";
 import { Reveal } from "../ui/Reveal";
 
-type ServiceOption = "exterior" | "interior" | "screens" | "hardWater" | "notSure";
+type ServiceOption = "exterior" | "interior" | "screens" | "notSure";
 
 type FormState = {
   name: string;
@@ -37,7 +38,6 @@ const serviceOptions: { key: ServiceOption; label: string }[] = [
   { key: "exterior", label: "Exterior Windows" },
   { key: "interior", label: "Interior Windows" },
   { key: "screens", label: "Screens" },
-  { key: "hardWater", label: "Hard Water Stain Removal" },
   { key: "notSure", label: "Not Sure" },
 ];
 
@@ -56,15 +56,58 @@ function validate(values: FormState): FormErrors {
   return errors;
 }
 
+const serviceLabels: Record<ServiceOption, string> = Object.fromEntries(
+  serviceOptions.map((o) => [o.key, o.label]),
+) as Record<ServiceOption, string>;
+
 /**
- * Quote request form. Not wired to a backend — onSubmit simulates
- * success locally. To connect a real backend or form service (e.g. an
- * API route, Formspree, or a CRM webhook), replace the body of
- * `submitQuoteRequest` below with a real network call.
+ * Sends the quote request via Web3Forms (https://web3forms.com) — a
+ * free form-backend service that emails submissions straight to the
+ * inbox tied to VITE_WEB3FORMS_ACCESS_KEY, with no server of our own
+ * to run or maintain. See README.md "Quote form backend" for setup.
  */
-async function submitQuoteRequest(values: FormState): Promise<void> {
-  console.info("Quote request ready to send:", values);
-  await new Promise((resolve) => setTimeout(resolve, 600));
+async function submitQuoteRequest(values: FormState): Promise<{ ok: boolean; error?: string }> {
+  const accessKey = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY;
+
+  if (!accessKey) {
+    console.error(
+      "Quote form is not connected to a backend yet — set VITE_WEB3FORMS_ACCESS_KEY. See README.md.",
+    );
+    return {
+      ok: false,
+      error: "Sorry, something's not set up right on our end. Please call or email us instead.",
+    };
+  }
+
+  try {
+    const response = await fetch("https://api.web3forms.com/submit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({
+        access_key: accessKey,
+        subject: `New quote request from ${values.name}`,
+        from_name: "Window Bros website",
+        name: values.name,
+        phone: values.phone,
+        email: values.email,
+        address: values.address,
+        number_of_windows: values.windowCount || "Not specified",
+        number_of_stories: values.stories || "Not specified",
+        services_needed: values.services.map((s) => serviceLabels[s]).join(", ") || "Not specified",
+        preferred_date: values.preferredDate || "Not specified",
+        additional_notes: values.notes || "—",
+        replyto: values.email,
+      }),
+    });
+
+    const data = (await response.json()) as { success?: boolean; message?: string };
+    if (!response.ok || !data.success) {
+      return { ok: false, error: data.message ?? "Something went wrong sending your request." };
+    }
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "Network error — please check your connection and try again." };
+  }
 }
 
 const inputClass =
@@ -77,6 +120,7 @@ export function QuoteForm() {
   const [values, setValues] = useState<FormState>(initialState);
   const [errors, setErrors] = useState<FormErrors>({});
   const [status, setStatus] = useState<"idle" | "submitting" | "success">("idle");
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const field = <K extends keyof FormState>(key: K) => ({
     value: values[key] as never,
@@ -104,8 +148,14 @@ export function QuoteForm() {
       return;
     }
     setStatus("submitting");
-    await submitQuoteRequest(values);
-    setStatus("success");
+    setSubmitError(null);
+    const result = await submitQuoteRequest(values);
+    if (result.ok) {
+      setStatus("success");
+    } else {
+      setStatus("idle");
+      setSubmitError(result.error ?? "Something went wrong. Please try again or call us.");
+    }
   };
 
   if (status === "success") {
@@ -277,7 +327,7 @@ export function QuoteForm() {
                 </legend>
                 <div
                   id="quote-services"
-                  className="grid grid-cols-2 gap-3 sm:grid-cols-3"
+                  className="grid grid-cols-2 gap-3 sm:grid-cols-4"
                   aria-invalid={!!errors.services}
                   aria-describedby={errors.services ? "quote-services-error" : undefined}
                 >
@@ -328,6 +378,15 @@ export function QuoteForm() {
                 />
               </div>
 
+              {submitError && (
+                <p
+                  role="alert"
+                  className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+                >
+                  {submitError}
+                </p>
+              )}
+
               <button
                 type="submit"
                 disabled={status === "submitting"}
@@ -339,6 +398,20 @@ export function QuoteForm() {
                 We&rsquo;ll never share your information. No spam, ever.
               </p>
             </form>
+          </Reveal>
+
+          <Reveal
+            delay={150}
+            className="mt-6 flex flex-col items-center gap-2 rounded-2xl border border-dashed border-line px-6 py-6 text-center"
+          >
+            <p className="text-sm font-semibold text-ink">Want an even more accurate quote?</p>
+            <p className="text-small max-w-sm">
+              Text us a short video walking through your windows and we&rsquo;ll use it to
+              fine-tune your quote.
+            </p>
+            <a href={business.smsHref} className="btn-secondary mt-1 !text-sm">
+              Text Us a Video
+            </a>
           </Reveal>
         </div>
       </Container>

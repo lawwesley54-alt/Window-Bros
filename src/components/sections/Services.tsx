@@ -15,7 +15,7 @@ export function Services() {
           subtitle="Simple, professional window cleaning for your home."
         />
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-6 sm:grid-cols-3">
           {services.map((service, i) => {
             const image = images[service.imageKey];
             return (

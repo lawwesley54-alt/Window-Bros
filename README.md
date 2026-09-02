@@ -45,9 +45,36 @@ Search for `[BRACKETED PLACEHOLDERS]` for what's left:
   instead of a broken-image icon.
 - **`public/robots.txt`** and **`public/sitemap.xml`** — update the
   production domain.
-- **`src/components/sections/QuoteForm.tsx`** — `submitQuoteRequest()`
-  currently only logs to the console. Wire it to a real backend, API
-  route, or form service before launch.
+- **Quote form backend** — see below. It needs a real access key before
+  quote requests actually reach anyone.
+- **`business.social.google`** in `src/config/site.ts` — the "Leave Us a
+  Review" button in the Reviews section links here. Get your review
+  link from your Google Business Profile ("Get more reviews" → copy
+  link) and drop it in.
+
+## Quote form backend
+
+The quote form (`src/components/sections/QuoteForm.tsx`) sends
+submissions via [Web3Forms](https://web3forms.com) — a free service
+that emails form submissions straight to an inbox, with no server of
+our own to build or host.
+
+Setup (~2 minutes, no account needed):
+
+1. Go to https://web3forms.com and enter the email address you want
+   quote requests delivered to. It emails you an access key instantly.
+2. Copy `.env.example` to `.env.local` and paste the key in:
+   ```
+   VITE_WEB3FORMS_ACCESS_KEY=your-key-here
+   ```
+3. Restart `npm run dev` (or redeploy) so the new env var is picked up.
+
+`.env.local` is gitignored — never commit a real key. When deploying
+(Vercel, Netlify, etc.), set `VITE_WEB3FORMS_ACCESS_KEY` in that host's
+environment variable settings instead.
+
+Until the key is set, the form shows a friendly error asking people to
+call or email instead — it never silently pretends a submission worked.
 
 ## Design system
 

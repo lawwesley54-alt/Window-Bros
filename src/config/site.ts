@@ -12,6 +12,7 @@ export const business = {
   tagline: "Two Brothers, Clean Glass",
   phone: "(512) 995-9966",
   phoneHref: "tel:+15129959966",
+  smsHref: "sms:+15129959966",
   email: "broswimdow4@gmail.com",
   primaryCity: "Salado, TX",
   serviceArea: "Salado, TX",
@@ -49,11 +50,7 @@ export const trustPoints = [
   { label: "Residential Specialists" },
 ] as const;
 
-export type ServiceKey =
-  | "exterior"
-  | "interior"
-  | "screens"
-  | "hardWater";
+export type ServiceKey = "exterior" | "interior" | "screens";
 
 export const services: {
   key: ServiceKey;
@@ -78,12 +75,6 @@ export const services: {
     name: "Screen Cleaning",
     description: "Remove dust and buildup from window screens.",
     imageKey: "screens",
-  },
-  {
-    key: "hardWater",
-    name: "Hard Water Stain Removal",
-    description: "Help remove stubborn mineral buildup and water spots.",
-    imageKey: "hardWater",
   },
 ];
 
@@ -178,13 +169,12 @@ export const faqs = [
       "Yes — we take your screens off, wash them down, and put them back in place.",
   },
   {
-    question: "Can you remove hard water stains?",
-    answer:
-      "Yes — we have the right tools to help remove stubborn hard water stains.",
-  },
-  {
     question: "How do I get a quote?",
     answer: `Call us at ${business.phone} for a free quote, or fill out the quote form on this page and we'll follow up with you directly.`,
+  },
+  {
+    question: "Can I send a video of my windows for a more accurate quote?",
+    answer: `Yes — text a short video of your windows to ${business.phone} and we'll use it to fine-tune your quote.`,
   },
   {
     question: "What areas do you serve?",
