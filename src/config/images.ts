@@ -5,14 +5,14 @@
  * an image URL inside a component. To replace an image, change its `src`
  * (and `srcSet` sizes if you keep responsive variants) in this one file.
  *
- * `hero`, `windowCleaning`, `hardWater`, `interiorWindows`, and `screens`
- * use real photos the client provided (saved to public/photos/). Only
+ * `hero`, `windowCleaning`, `interiorWindows`, and `screens` use real
+ * photos the client provided (saved to public/photos/). `hardWater`,
  * `beforeAfterBefore`, `beforeAfterAfter`, and `cta` still use licensed
  * Unsplash photography as a placeholder (free to use under the Unsplash
  * License) — these are NOT photos of actual Window Bros customers or
- * work. The Before & After section in particular still needs a real
- * matching before/after pair of the same window — none has been
- * provided yet.
+ * work. Before & After in particular still needs a real matching
+ * before/after pair of the same window, and hardWater needs a real
+ * hard-water-stain photo — none has been provided for either yet.
  *
  * NOTE: the Unsplash URLs below were selected from training knowledge
  * and could not be live-verified in this sandbox (outbound network
@@ -55,9 +55,13 @@ export const images = {
     alt: "A window screen removed for cleaning, leaning against an exterior wall",
     position: "50% 55%",
   },
+  // Reverted to a placeholder — the photo previously here was not an
+  // actual Window Bros job photo (it was a style reference, not
+  // cleared for use on the site). Needs a real photo of hard water /
+  // mineral stains, ideally an actual Window Bros before shot.
   hardWater: {
-    src: "/photos/hard-water-stains.jpg",
-    alt: "Close-up of hard water mineral buildup on a window pane",
+    src: unsplash("photo-1527515637462-cff94eecc1ac", 1200),
+    alt: "Placeholder: clear glass window — replace with a real hard water stain photo",
     position: "center",
   },
   beforeAfterBefore: {
