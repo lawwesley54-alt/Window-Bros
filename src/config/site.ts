@@ -24,6 +24,10 @@ export const business = {
   social: {
     facebook: "[FACEBOOK URL]",
     instagram: "[INSTAGRAM URL]",
+    // Google Business Profile URL — also used as the "Leave us a review"
+    // link. Use the direct review-shortcut link from Google Business
+    // Profile (Home > "Get more reviews" > copy link) so it opens
+    // straight to the review form instead of the profile page.
     google: "[GOOGLE BUSINESS PROFILE URL]",
   },
   hours: "[BUSINESS HOURS]",

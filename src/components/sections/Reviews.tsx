@@ -1,4 +1,4 @@
-import { reviews } from "../../config/site";
+import { business, reviews } from "../../config/site";
 import { Container } from "../ui/Container";
 import { SectionHeading } from "../ui/SectionHeading";
 import { Reveal } from "../ui/Reveal";
@@ -55,6 +55,22 @@ export function Reviews() {
             </Reveal>
           ))}
         </div>
+
+        <Reveal className="flex flex-col items-center gap-3 rounded-3xl border border-line bg-bg-subtle px-6 py-10 text-center sm:px-10">
+          <h3 className="text-h4 text-ink">Had a great experience with Window Bros?</h3>
+          <p className="text-body max-w-md">
+            We&rsquo;d love to hear about it — a quick review helps other homeowners in{" "}
+            {business.serviceArea} find us.
+          </p>
+          <a
+            href={business.social.google}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-primary mt-2"
+          >
+            Leave Us a Review
+          </a>
+        </Reveal>
       </Container>
     </section>
   );
