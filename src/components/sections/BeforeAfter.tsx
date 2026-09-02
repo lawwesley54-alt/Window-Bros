@@ -98,10 +98,6 @@ export function BeforeAfter() {
             className="absolute inset-0 z-20 h-full w-full cursor-ew-resize opacity-0"
           />
         </Reveal>
-
-        <p className="text-center text-sm text-ink-faint">
-          Representative before &amp; after examples of our work.
-        </p>
       </Container>
     </section>
   );
