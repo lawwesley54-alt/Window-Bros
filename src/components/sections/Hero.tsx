@@ -11,6 +11,7 @@ export function Hero() {
           src={images.hero.src}
           alt={images.hero.alt}
           className="h-full w-full object-cover opacity-70"
+          style={{ objectPosition: images.hero.position }}
           loading="eager"
           fetchPriority="high"
         />

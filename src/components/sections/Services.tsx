@@ -25,6 +25,7 @@ export function Services() {
                     src={image.src}
                     alt={image.alt}
                     className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    style={{ objectPosition: image.position }}
                   />
                 </div>
                 <div className="flex flex-1 flex-col gap-2 p-6">
