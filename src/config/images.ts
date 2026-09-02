@@ -61,9 +61,9 @@ export const images = {
     position: "center",
   },
   beforeAfterAfter: {
-    src: "/photos/interior-window-view.jpg",
-    alt: "Crystal-clear window glass with a potted plant visible through it",
-    position: "50% 30%",
+    src: "/photos/window-after-clean-zoomed.jpg",
+    alt: "Crystal-clear window glass with a potted plant visible through it, zoomed in",
+    position: "60% 45%",
   },
   cta: {
     src: unsplash("photo-1512917774080-9991f1c4c750", 1800),
