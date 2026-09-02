@@ -5,13 +5,14 @@
  * an image URL inside a component. To replace an image, change its `src`
  * (and `srcSet` sizes if you keep responsive variants) in this one file.
  *
- * `hero`, `windowCleaning`, `interiorWindows`, and `screens` use real
- * photos the client provided (saved to public/photos/). `beforeAfterBefore`,
- * `beforeAfterAfter`, and `cta` still use licensed Unsplash photography
- * as a placeholder (free to use under the Unsplash License) — these are
- * NOT photos of actual Window Bros customers or work. Before & After in
- * particular still needs a real matching before/after pair of the same
- * window — none has been provided yet.
+ * `hero`, `windowCleaning`, `interiorWindows`, `screens`,
+ * `beforeAfterBefore`, and `beforeAfterAfter` all use real photos the
+ * client provided (saved to public/photos/). Note beforeAfterBefore and
+ * beforeAfterAfter are NOT the same physical window — they're
+ * representative "dirty" vs. "clean" examples, not a matched pair, so
+ * keep any copy referencing them honest about that. Only `cta` still
+ * uses licensed Unsplash photography as a placeholder (free to use
+ * under the Unsplash License) — not a photo of actual Window Bros work.
  *
  * NOTE: the Unsplash URLs below were selected from training knowledge
  * and could not be live-verified in this sandbox (outbound network
@@ -55,14 +56,14 @@ export const images = {
     position: "50% 55%",
   },
   beforeAfterBefore: {
-    src: unsplash("photo-1558036117-15d82a90b9b1", 1200),
-    alt: "Placeholder: window before cleaning — replace with a real Window Bros photo",
+    src: "/photos/window-before-dirty.jpg",
+    alt: "A grimy, fogged-up window that's hard to see through",
     position: "center",
   },
   beforeAfterAfter: {
-    src: unsplash("photo-1600607687939-ce8a6c25118c", 1200),
-    alt: "Placeholder: window after cleaning — replace with a real Window Bros photo",
-    position: "center",
+    src: "/photos/interior-window-view.jpg",
+    alt: "Crystal-clear window glass with a potted plant visible through it",
+    position: "50% 30%",
   },
   cta: {
     src: unsplash("photo-1512917774080-9991f1c4c750", 1800),

@@ -6,9 +6,10 @@ import { Reveal } from "../ui/Reveal";
 import { Img } from "../ui/Img";
 
 /**
- * Draggable before/after slider. Images are placeholders — swap
- * images.beforeAfterBefore / images.beforeAfterAfter with real Window
- * Bros job photos as soon as they're available.
+ * Draggable before/after slider. Uses real client photos (a grimy
+ * window vs. a crystal-clear one) as representative examples — they're
+ * not literally the same window, so copy here should stay honest about
+ * that ("representative", not "this exact window").
  */
 export function BeforeAfter() {
   const [position, setPosition] = useState(50);
@@ -29,7 +30,7 @@ export function BeforeAfter() {
         <SectionHeading
           eyebrow="See The Difference"
           title="Before &amp; After"
-          subtitle="Drag the slider to compare. Replace with real Window Bros photos."
+          subtitle="Drag the slider to compare."
         />
 
         <Reveal
@@ -101,7 +102,7 @@ export function BeforeAfter() {
         </Reveal>
 
         <p className="text-center text-sm text-ink-faint">
-          Placeholder images — replace with real Window Bros before &amp; after photos.
+          Representative before &amp; after examples of our work.
         </p>
       </Container>
     </section>
