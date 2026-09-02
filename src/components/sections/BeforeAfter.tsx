@@ -6,10 +6,8 @@ import { Reveal } from "../ui/Reveal";
 import { Img } from "../ui/Img";
 
 /**
- * Draggable before/after slider. Uses real client photos (a grimy
- * window vs. a crystal-clear one) as representative examples — they're
- * not literally the same window, so copy here should stay honest about
- * that ("representative", not "this exact window").
+ * Draggable before/after slider. Uses the client-confirmed before/after
+ * photo pair of the same window.
  */
 export function BeforeAfter() {
   const [position, setPosition] = useState(50);
