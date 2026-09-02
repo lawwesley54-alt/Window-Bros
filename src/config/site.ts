@@ -10,15 +10,15 @@
 export const business = {
   name: "Window Bros",
   tagline: "Two Brothers, Clean Glass",
-  phone: "[PHONE]",
-  phoneHref: "tel:+10000000000", // TODO: replace with real tel: link
-  email: "[EMAIL]",
-  primaryCity: "[PRIMARY CITY]",
-  serviceArea: "[SERVICE AREA]",
+  phone: "(512) 995-9966",
+  phoneHref: "tel:+15129959966",
+  email: "broswimdow4@gmail.com",
+  primaryCity: "Salado, TX",
+  serviceArea: "Salado, TX",
   address: {
     street: "[STREET ADDRESS]",
-    city: "[CITY]",
-    state: "[STATE]",
+    city: "Salado",
+    state: "TX",
     zip: "[ZIP]",
   },
   social: {
@@ -162,8 +162,7 @@ export const faqs = [
   },
   {
     question: "How long does window cleaning take?",
-    answer:
-      "[Service time varies based on the number of windows and services selected. We'll give you a better estimate with your quote.]",
+    answer: "Depending on the size of your house, window cleaning typically takes 2 to 4 hours.",
   },
   {
     question: "Do you clean interior windows?",
@@ -171,25 +170,25 @@ export const faqs = [
   },
   {
     question: "Do you clean window screens?",
-    answer: "Yes — we offer screen cleaning to remove dust and buildup.",
+    answer:
+      "Yes — we take your screens off, wash them down, and put them back in place.",
   },
   {
     question: "Can you remove hard water stains?",
     answer:
-      "We offer hard water stain removal to help with stubborn mineral buildup and water spots.",
+      "Yes — we have the right tools to help remove stubborn hard water stains.",
   },
   {
     question: "How do I get a quote?",
-    answer:
-      "Fill out the quote form on this page, and we'll follow up with you directly.",
+    answer: `Call us at ${business.phone} for a free quote, or fill out the quote form on this page and we'll follow up with you directly.`,
   },
   {
     question: "What areas do you serve?",
-    answer: `[We proudly serve ${business.serviceArea}. Contact us to confirm we cover your area.]`,
+    answer: `We proudly serve the ${business.serviceArea} area.`,
   },
   {
     question: "What happens if it rains?",
     answer:
-      "[Add your rain / weather rescheduling policy here.]",
+      "If it rains on the day of your scheduled cleaning, we guarantee you'll get one free job.",
   },
 ] as const;

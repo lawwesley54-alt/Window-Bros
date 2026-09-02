@@ -12,7 +12,11 @@ export function ServiceArea() {
             align="left"
             eyebrow="Where We Work"
             title="Proudly Serving Local Homeowners"
-            subtitle={`Window Bros is based in ${business.primaryCity} and serves homeowners throughout ${business.serviceArea}.`}
+            subtitle={
+              business.primaryCity === business.serviceArea
+                ? `Window Bros proudly serves homeowners in ${business.primaryCity}.`
+                : `Window Bros is based in ${business.primaryCity} and serves homeowners throughout ${business.serviceArea}.`
+            }
           />
 
           <Reveal delay={100} className="card flex flex-col gap-5 p-8">

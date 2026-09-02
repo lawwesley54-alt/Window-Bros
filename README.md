@@ -20,16 +20,21 @@ npm run test:visual    # responsive check at 375/390/430/768/1024/1440px
 npm run test:a11y      # axe-core WCAG 2.x AA scan
 ```
 
-## Before launch — replace every placeholder
+## Before launch — replace every remaining placeholder
 
 Nothing in this build invents business details, reviews, prices, or
-credentials. Search for `[BRACKETED PLACEHOLDERS]` and fill them in:
+credentials. Phone, email, and service area (Salado, TX) are filled in.
+Search for `[BRACKETED PLACEHOLDERS]` for what's left:
 
-- **`src/config/site.ts`** — phone, email, address, service area, social
-  links, FAQ answers, and the placeholder reviews (replace with real
-  customer reviews only — never invent them).
-- **`index.html`** — the `<title>`, meta description, canonical URL, and
-  the `LocalBusiness` JSON-LD block (keep it in sync with `site.ts`).
+- **`src/config/site.ts`** — street address/ZIP, social links, and the
+  placeholder reviews (replace with real customer reviews only — never
+  invent them). Pricing is intentionally left as a placeholder in the
+  FAQ since no pricing was provided.
+- **`index.html`** — the `LocalBusiness` JSON-LD still needs a real
+  street address and postal code (keep it in sync with `site.ts`); the
+  production domain (currently `windowbros.example`) also needs updating
+  everywhere it appears (canonical URL, Open Graph/Twitter tags,
+  JSON-LD `url`/`image`).
 - **`src/config/images.ts`** — every image is centralized here. The
   initial set uses placeholder Unsplash photography; swap in real
   Window Bros job photos when available, especially `beforeAfterBefore`
