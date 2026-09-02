@@ -5,12 +5,14 @@
  * an image URL inside a component. To replace an image, change its `src`
  * (and `srcSet` sizes if you keep responsive variants) in this one file.
  *
- * `hero` and `windowCleaning` use a real photo the client provided
- * (saved to public/photos/). Everything else still uses licensed
- * Unsplash photography as a placeholder (free to use under the Unsplash
- * License) — these are NOT photos of actual Window Bros customers or
- * work, and should be swapped for real job photography as it comes in,
- * especially the Before & After section.
+ * `hero`, `windowCleaning`, and `hardWater` use real photos the client
+ * provided (saved to public/photos/). Everything else still uses
+ * licensed Unsplash photography as a placeholder (free to use under the
+ * Unsplash License) — these are NOT photos of actual Window Bros
+ * customers or work, and should be swapped for real job photography as
+ * it comes in. The Before & After section in particular still needs a
+ * real matching before/after pair of the same window — none has been
+ * provided yet.
  *
  * NOTE: the Unsplash URLs below were selected from training knowledge
  * and could not be live-verified in this sandbox (outbound network
@@ -54,8 +56,8 @@ export const images = {
     position: "center",
   },
   hardWater: {
-    src: unsplash("photo-1527515637462-cff94eecc1ac", 1200),
-    alt: "Clear glass window with sunlight streaming through",
+    src: "/photos/hard-water-stains.jpg",
+    alt: "Close-up of hard water mineral buildup on a window pane",
     position: "center",
   },
   beforeAfterBefore: {
