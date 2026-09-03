@@ -37,11 +37,22 @@ export const business = {
 export const nav = [
   { label: "Home", href: "#home" },
   { label: "Services", href: "#services" },
+  { label: "About", href: "#about" },
   { label: "How It Works", href: "#how-it-works" },
   { label: "Reviews", href: "#reviews" },
   { label: "FAQ", href: "#faq" },
   { label: "Contact", href: "#quote" },
 ] as const;
+
+export const owner = {
+  name: "Wesley Law",
+  school: "Salado High School",
+  experience: "Almost 2 years",
+  bio: [
+    "Window Bros is owned and run by Wesley Law, a Salado High School student who's spent the last two years hustling to build something of his own — one clean window at a time. Wesley works alongside a small crew of friends to get every job done right.",
+    "He's saving up for college, and he treats every job like it matters, because it does. Every job comes with a simple promise: if you're not happy with how it looks, the job isn't done yet.",
+  ],
+} as const;
 
 export const trustPoints = [
   { label: "Professional Service" },

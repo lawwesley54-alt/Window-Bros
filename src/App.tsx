@@ -6,6 +6,7 @@ import { TrustBar } from "./components/sections/TrustBar";
 import { Services } from "./components/sections/Services";
 import { BeforeAfter } from "./components/sections/BeforeAfter";
 import { WhyUs } from "./components/sections/WhyUs";
+import { About } from "./components/sections/About";
 import { HowItWorks } from "./components/sections/HowItWorks";
 import { PhotoBreak } from "./components/sections/PhotoBreak";
 import { Reviews } from "./components/sections/Reviews";
@@ -30,6 +31,7 @@ export default function App() {
         <Services />
         <BeforeAfter />
         <WhyUs />
+        <About />
         <HowItWorks />
         <PhotoBreak />
         <Reviews />
