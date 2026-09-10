@@ -75,7 +75,7 @@ async function submitQuoteRequest(values: FormState): Promise<{ ok: boolean; err
     );
     return {
       ok: false,
-      error: "Sorry, something's not set up right on our end. Please call or email us instead.",
+      error: "Sorry, something's not set up right on my end. Please call or email me instead.",
     };
   }
 
@@ -154,7 +154,7 @@ export function QuoteForm() {
       setStatus("success");
     } else {
       setStatus("idle");
-      setSubmitError(result.error ?? "Something went wrong. Please try again or call us.");
+      setSubmitError(result.error ?? "Something went wrong. Please try again or call me.");
     }
   };
 
@@ -176,7 +176,7 @@ export function QuoteForm() {
             </div>
             <h2 className="text-h3 text-ink">Thanks — your quote request is in!</h2>
             <p className="text-body">
-              We&rsquo;ll be in touch soon to confirm details and get you scheduled.
+              I&rsquo;ll be in touch soon to confirm details and get you scheduled.
             </p>
             <button
               type="button"
@@ -201,7 +201,7 @@ export function QuoteForm() {
           <SectionHeading
             eyebrow="Free Quote"
             title="Let's Get Your Windows Looking Their Best"
-            subtitle="Tell us a bit about your home and we'll follow up with a free quote."
+            subtitle="Tell me a bit about your home and I'll follow up with a free quote."
           />
 
           <Reveal
@@ -210,11 +210,11 @@ export function QuoteForm() {
           >
             <p className="text-h4 text-ink">Fastest way to a quote</p>
             <p className="text-small max-w-sm">
-              Text us a short video walking through your windows and we&rsquo;ll use it to
+              Text me a short video walking through your windows and I&rsquo;ll use it to
               give you an accurate quote — no form required.
             </p>
             <a href={business.smsHref} className="btn-primary mt-2">
-              Text Us a Video
+              Text Me a Video
             </a>
           </Reveal>
 
@@ -393,7 +393,7 @@ export function QuoteForm() {
                   id="quote-notes"
                   rows={4}
                   className={`${inputClass} resize-y`}
-                  placeholder="Anything else we should know?"
+                  placeholder="Anything else I should know?"
                   {...field("notes")}
                 />
               </div>
@@ -415,7 +415,7 @@ export function QuoteForm() {
                 {status === "submitting" ? "Sending..." : "Get My Free Quote"}
               </button>
               <p className="text-center text-xs text-ink-faint">
-                We&rsquo;ll never share your information. No spam, ever.
+                I&rsquo;ll never share your information. No spam, ever.
               </p>
             </form>
           </Reveal>

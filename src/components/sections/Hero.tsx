@@ -24,8 +24,8 @@ export function Hero() {
           <span className="text-eyebrow text-accent-light">Residential Window Cleaning</span>
           <h1 className="text-h1 text-white">Crystal-Clear Windows. Zero Hassle.</h1>
           <p className="max-w-xl text-lg leading-relaxed text-white/80 sm:text-xl">
-            Professional window cleaning for homeowners who want cleaner windows without the
-            hassle.
+            I provide professional window cleaning for homeowners who want cleaner windows
+            without the hassle.
           </p>
 
           <div className="flex flex-col gap-3 pt-2 sm:flex-row">
@@ -33,7 +33,7 @@ export function Hero() {
               Get My Free Quote
             </a>
             <a href="#services" className="btn-ghost-light justify-center !px-8 !text-base">
-              See Our Services
+              See My Services
             </a>
           </div>
 

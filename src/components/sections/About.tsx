@@ -30,7 +30,7 @@ export function About() {
           </Reveal>
 
           <div className="flex flex-col gap-6">
-            <SectionHeading align="left" eyebrow="About Us" title="Meet Wesley" />
+            <SectionHeading align="left" eyebrow="About Me" title="Meet Wesley" />
 
             <Reveal delay={80} className="flex flex-col gap-4">
               {owner.bio.map((paragraph) => (

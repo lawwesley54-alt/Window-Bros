@@ -10,8 +10,8 @@ export function Services() {
     <section id="services" className="section-pad bg-white">
       <Container className="flex flex-col gap-12">
         <SectionHeading
-          eyebrow="Our Services"
-          title="What We Clean"
+          eyebrow="What I Do"
+          title="What I Clean"
           subtitle="Simple, professional window cleaning for your home."
         />
 

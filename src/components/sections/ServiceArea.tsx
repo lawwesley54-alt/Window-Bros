@@ -10,12 +10,12 @@ export function ServiceArea() {
         <div className="grid items-center gap-12 lg:grid-cols-2">
           <SectionHeading
             align="left"
-            eyebrow="Where We Work"
+            eyebrow="Where I Work"
             title="Proudly Serving Local Homeowners"
             subtitle={
               business.primaryCity === business.serviceArea
-                ? `Window Bros proudly serves homeowners in ${business.primaryCity}.`
-                : `Window Bros is based in ${business.primaryCity} and serves homeowners throughout ${business.serviceArea}.`
+                ? `I proudly serve homeowners in ${business.primaryCity}.`
+                : `I'm based in ${business.primaryCity} and serve homeowners throughout ${business.serviceArea}.`
             }
           />
 
@@ -57,7 +57,7 @@ export function ServiceArea() {
             </div>
 
             <a href="#quote" className="btn-primary mt-2 justify-center">
-              Check If We Serve Your Area
+              Check If I Serve Your Area
             </a>
           </Reveal>
         </div>

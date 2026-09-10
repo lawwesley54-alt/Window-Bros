@@ -49,8 +49,8 @@ export const owner = {
   school: "Salado High School",
   experience: "Almost 2 years",
   bio: [
-    "Window Bros is owned and run by Wesley Law, a Salado High School student who's spent the last two years hustling to build something of his own — one clean window at a time. Wesley works alongside a small crew of friends to get every job done right.",
-    "He's saving up for college, and he treats every job like it matters, because it does. Every job comes with a simple promise: if you're not happy with how it looks, the job isn't done yet.",
+    "I'm Wesley Law, a Salado High School student, and I own and run Window Bros. For the last two years I've been hustling to build something of my own, one clean window at a time — working alongside a small crew of friends to get every job done right.",
+    "I'm saving up for college, and I treat every job like it matters, because it does. Every job comes with a simple promise: if you're not happy with how it looks, I'm not done yet.",
   ],
 } as const;
 
@@ -96,7 +96,7 @@ export const whyPoints = [
   },
   {
     title: "Careful",
-    description: "We treat your home and property with respect.",
+    description: "I treat your home and property with respect.",
   },
   {
     title: "Reliable",
@@ -104,7 +104,7 @@ export const whyPoints = [
   },
   {
     title: "Quality Focused",
-    description: "We care about the final result.",
+    description: "I care about the final result.",
   },
 ] as const;
 
@@ -112,7 +112,7 @@ export const howItWorks = [
   {
     step: "01",
     title: "Get Your Quote",
-    description: "Tell us what you need cleaned.",
+    description: "Tell me what you need cleaned.",
   },
   {
     step: "02",
@@ -122,7 +122,7 @@ export const howItWorks = [
   {
     step: "03",
     title: "Enjoy Cleaner Windows",
-    description: "We clean your windows and leave your home looking better.",
+    description: "I clean your windows and leave your home looking better.",
   },
 ] as const;
 
@@ -164,7 +164,7 @@ export const faqs = [
   {
     question: "How much does window cleaning cost?",
     answer:
-      "[Pricing depends on the size of your home and the services requested. Contact us for a free, no-obligation quote.]",
+      "[Pricing depends on the size of your home and the services requested. Contact me for a free, no-obligation quote.]",
   },
   {
     question: "How long does window cleaning take?",
@@ -172,28 +172,28 @@ export const faqs = [
   },
   {
     question: "Do you clean interior windows?",
-    answer: "Yes — interior window cleaning is one of our core services.",
+    answer: "Yes — interior window cleaning is one of my core services.",
   },
   {
     question: "Do you clean window screens?",
     answer:
-      "Yes — we take your screens off, wash them down, and put them back in place.",
+      "Yes — I take your screens off, wash them down, and put them back in place.",
   },
   {
     question: "How do I get a quote?",
-    answer: `Call us at ${business.phone} for a free quote, or fill out the quote form on this page and we'll follow up with you directly.`,
+    answer: `Call me at ${business.phone} for a free quote, or fill out the quote form on this page and I'll follow up with you directly.`,
   },
   {
     question: "Can I send a video of my windows for a more accurate quote?",
-    answer: `Yes — text a short video of your windows to ${business.phone} and we'll use it to fine-tune your quote.`,
+    answer: `Yes — text a short video of your windows to ${business.phone} and I'll use it to fine-tune your quote.`,
   },
   {
     question: "What areas do you serve?",
-    answer: `We proudly serve the ${business.serviceArea} area.`,
+    answer: `I proudly serve the ${business.serviceArea} area.`,
   },
   {
     question: "What happens if it rains?",
     answer:
-      "If it rains on the day of your scheduled cleaning, we guarantee you'll get one free job.",
+      "If it rains on the day of your scheduled cleaning, I guarantee you'll get one free job.",
   },
 ] as const;
