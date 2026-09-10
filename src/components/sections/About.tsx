@@ -1,7 +1,9 @@
 import { owner } from "../../config/site";
+import { images } from "../../config/images";
 import { Container } from "../ui/Container";
 import { SectionHeading } from "../ui/SectionHeading";
 import { Reveal } from "../ui/Reveal";
+import { Img } from "../ui/Img";
 
 const facts = [
   { label: owner.school },
@@ -10,19 +12,17 @@ const facts = [
 ];
 
 export function About() {
-  const initials = owner.name
-    .split(" ")
-    .map((part) => part[0])
-    .join("");
-
   return (
     <section id="about" className="section-pad border-t border-line bg-bg-subtle">
       <Container>
-        <div className="grid items-start gap-12 lg:grid-cols-[auto_1fr]">
-          <Reveal className="flex flex-col items-center gap-4 lg:items-start">
-            <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-accent-soft text-2xl font-bold text-accent">
-              {initials}
-            </div>
+        <div className="grid items-start gap-8 lg:grid-cols-[auto_1fr] lg:gap-12">
+          <Reveal className="flex flex-col items-center gap-3 lg:items-start">
+            <Img
+              src={images.owner.src}
+              alt={images.owner.alt}
+              className="w-56 sm:w-64"
+              loading="lazy"
+            />
             <div className="text-center lg:text-left">
               <p className="text-h4 text-ink">{owner.name}</p>
               <p className="text-small">Owner, Window Bros</p>

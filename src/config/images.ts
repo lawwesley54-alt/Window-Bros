@@ -6,9 +6,9 @@
  * (and `srcSet` sizes if you keep responsive variants) in this one file.
  *
  * `hero`, `windowCleaning`, `interiorWindows`, `screens`,
- * `beforeAfterBefore`, and `beforeAfterAfter` all use real photos the
- * client provided (saved to public/photos/) — beforeAfterBefore and
- * beforeAfterAfter are the client-confirmed before/after pair of the
+ * `beforeAfterBefore`, `beforeAfterAfter`, and `owner` all use real
+ * photos the client provided (saved to public/photos/) — beforeAfterBefore
+ * and beforeAfterAfter are the client-confirmed before/after pair of the
  * same window. Only `cta` still uses licensed Unsplash photography as a
  * placeholder (free to use under the Unsplash License) — not a photo of
  * actual Window Bros work.
@@ -67,6 +67,11 @@ export const images = {
   cta: {
     src: unsplash("photo-1512917774080-9991f1c4c750", 1800),
     alt: "Modern residential exterior with large glass windows at golden hour",
+    position: "center",
+  },
+  owner: {
+    src: "/photos/wesley.webp",
+    alt: "Wesley Law, owner of Window Bros, giving a thumbs up",
     position: "center",
   },
 } satisfies Record<string, ImageConfig>;
