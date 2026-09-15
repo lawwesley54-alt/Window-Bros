@@ -20,3 +20,8 @@ export function distanceMiles(
 
   return 2 * EARTH_RADIUS_MILES * Math.asin(Math.sqrt(h));
 }
+
+/** Google Maps link that opens driving directions/search for a point. */
+export function directionsUrl(point: { lat: number; lng: number }): string {
+  return `https://www.google.com/maps/search/?api=1&query=${point.lat},${point.lng}`;
+}

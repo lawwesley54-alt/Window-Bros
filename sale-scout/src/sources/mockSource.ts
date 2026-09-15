@@ -1,5 +1,5 @@
 import type { SaleSourceAdapter } from "./types";
-import { mockSales } from "../data/mockSales";
+import { generateMockSales } from "../data/mockSales";
 
 /**
  * Stand-in "user submissions + seed data" source so the app is fully
@@ -10,7 +10,7 @@ import { mockSales } from "../data/mockSales";
 export const mockSource: SaleSourceAdapter = {
   id: "user",
   label: "Demo listings",
-  async fetchSales() {
-    return mockSales;
+  async fetchSales(params) {
+    return generateMockSales({ lat: params.lat, lng: params.lng });
   },
 };

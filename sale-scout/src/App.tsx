@@ -27,13 +27,29 @@ export default function App() {
   const [bounds, setBounds] = useState<LatLngBounds | null>(null);
   const [voteOverrides, setVoteOverrides] = useState<VoteOverrides>({});
   const [searching, setSearching] = useState(false);
-  const [locationLabel, setLocationLabel] = useState("Austin, TX (demo)");
+  const [locationLabel, setLocationLabel] = useState("Locating you…");
   const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      setLocationLabel("Austin, TX (demo — location unavailable)");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setCenter([pos.coords.latitude, pos.coords.longitude]);
+        setLocationLabel("Your location");
+      },
+      () => setLocationLabel("Austin, TX (demo — location denied)"),
+      { timeout: 8000 },
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     mockSource.fetchSales({ lat: center[0], lng: center[1], radiusMiles }).then(setSales);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [center[0], center[1]]);
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), SCORE_REFRESH_MS);

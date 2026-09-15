@@ -1,6 +1,7 @@
 import type { ScoredSale } from "../types";
 import { scoreBucket } from "../lib/scoring";
 import { categoryThumbnail } from "../lib/categoryArt";
+import { directionsUrl } from "../lib/geo";
 
 interface SaleCardProps {
   sale: ScoredSale;
@@ -42,7 +43,18 @@ export default function SaleCard({ sale, selected, onSelect }: SaleCardProps) {
               {sale.score}%
             </span>
           </div>
-          <div className="meta">{sale.address}</div>
+          <div className="meta">
+            {sale.address}{" "}
+            <a
+              href={directionsUrl(sale)}
+              target="_blank"
+              rel="noreferrer"
+              className="directions-link"
+              onClick={(e) => e.stopPropagation()}
+            >
+              (map)
+            </a>
+          </div>
           <div className="meta">{formatWindow(sale.startsAt, sale.endsAt)}</div>
           <div className="meta">
             {sale.category} &middot; via {sale.source}

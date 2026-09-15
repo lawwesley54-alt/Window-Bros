@@ -5,6 +5,7 @@ import L, { type LatLngBoundsExpression, type LatLngTuple } from "leaflet";
 import type { ScoredSale } from "../types";
 import { scoreBucket } from "../lib/scoring";
 import { categoryThumbnail } from "../lib/categoryArt";
+import { directionsUrl } from "../lib/geo";
 
 const BUCKET_COLOR: Record<string, string> = {
   high: "#3ecf8e",
@@ -120,6 +121,9 @@ export default function MapView({
                 <div className="meta">
                   {sale.address} &middot; {sale.score}% likely still active
                 </div>
+                <a href={directionsUrl(sale)} target="_blank" rel="noreferrer">
+                  Get directions
+                </a>
                 <ul className="score-breakdown">
                   {sale.reasons.map((reason) => (
                     <li key={reason}>{reason}</li>
