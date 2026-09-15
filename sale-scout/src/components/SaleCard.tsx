@@ -1,5 +1,6 @@
 import type { ScoredSale } from "../types";
 import { scoreBucket } from "../lib/scoring";
+import { categoryThumbnail } from "../lib/categoryArt";
 
 interface SaleCardProps {
   sale: ScoredSale;
@@ -27,16 +28,26 @@ export default function SaleCard({ sale, selected, onSelect }: SaleCardProps) {
       className={`sale-card${selected ? " selected" : ""}`}
       onClick={() => onSelect(sale.id)}
     >
-      <div className="sale-card-header">
-        <h3>{sale.title}</h3>
-        <span className={`score-badge score-${scoreBucket(sale.score)}`}>
-          {sale.score}%
-        </span>
-      </div>
-      <div className="meta">{sale.address}</div>
-      <div className="meta">{formatWindow(sale.startsAt, sale.endsAt)}</div>
-      <div className="meta">
-        {sale.category} &middot; via {sale.source}
+      <div className="sale-card-body">
+        <img
+          className="sale-thumb"
+          src={sale.photos?.[0] ?? categoryThumbnail(sale.category)}
+          alt=""
+          aria-hidden="true"
+        />
+        <div className="sale-card-text">
+          <div className="sale-card-header">
+            <h3>{sale.title}</h3>
+            <span className={`score-badge score-${scoreBucket(sale.score)}`}>
+              {sale.score}%
+            </span>
+          </div>
+          <div className="meta">{sale.address}</div>
+          <div className="meta">{formatWindow(sale.startsAt, sale.endsAt)}</div>
+          <div className="meta">
+            {sale.category} &middot; via {sale.source}
+          </div>
+        </div>
       </div>
     </div>
   );

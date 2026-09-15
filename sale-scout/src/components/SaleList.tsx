@@ -11,8 +11,9 @@ export default function SaleList({ sales, selectedId, onSelect }: SaleListProps)
   if (sales.length === 0) {
     return (
       <div className="empty-state">
-        No sales match your filters in this area. Try widening the radius or
-        panning the map.
+        <span className="empty-icon">🔍</span>
+        No sales match your filters in this area. Try widening the radius,
+        lowering the minimum likelihood, or panning the map.
       </div>
     );
   }

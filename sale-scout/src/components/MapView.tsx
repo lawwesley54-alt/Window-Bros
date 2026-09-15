@@ -4,6 +4,7 @@ import MarkerClusterGroup from "react-leaflet-cluster";
 import L, { type LatLngBoundsExpression, type LatLngTuple } from "leaflet";
 import type { ScoredSale } from "../types";
 import { scoreBucket } from "../lib/scoring";
+import { categoryThumbnail } from "../lib/categoryArt";
 
 const BUCKET_COLOR: Record<string, string> = {
   high: "#3ecf8e",
@@ -109,6 +110,12 @@ export default function MapView({
           >
             <Popup>
               <div className="popup-content">
+                <img
+                  className="popup-thumb"
+                  src={sale.photos?.[0] ?? categoryThumbnail(sale.category)}
+                  alt=""
+                  aria-hidden="true"
+                />
                 <h3>{sale.title}</h3>
                 <div className="meta">
                   {sale.address} &middot; {sale.score}% likely still active

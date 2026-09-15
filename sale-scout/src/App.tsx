@@ -126,9 +126,23 @@ export default function App() {
           <h1>Sale Scout</h1>
           <span>{locationLabel}</span>
         </div>
-        <span style={{ fontSize: "0.78rem", color: "var(--text-dim)" }}>
-          {visibleOnMap.length} sale(s) within {radiusMiles} mi
-        </span>
+        <div className="legend">
+          <span className="legend-item">
+            <span className="legend-dot" style={{ background: "#3ecf8e" }} />
+            Likely active (70%+)
+          </span>
+          <span className="legend-item">
+            <span className="legend-dot" style={{ background: "#f0b429" }} />
+            Uncertain (40-69%)
+          </span>
+          <span className="legend-item">
+            <span className="legend-dot" style={{ background: "#949cab" }} />
+            Probably over (&lt;40%)
+          </span>
+          <span>
+            {visibleOnMap.length} sale(s) within {radiusMiles} mi
+          </span>
+        </div>
       </div>
       <div className="main-layout">
         <aside className="sidebar">

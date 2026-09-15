@@ -175,6 +175,24 @@ body {
   border-color: var(--accent);
 }
 
+.sale-card-body {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.sale-thumb {
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.sale-card-text {
+  flex: 1;
+  min-width: 0;
+}
+
 .sale-card-header {
   display: flex;
   justify-content: space-between;
@@ -223,6 +241,14 @@ body {
   font-size: 0.85rem;
 }
 
+.popup-thumb {
+  width: 100%;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-bottom: 0.4rem;
+}
+
 .popup-content h3 {
   margin: 0 0 0.25rem;
   font-size: 0.95rem;
@@ -266,4 +292,31 @@ body {
   text-align: center;
   color: var(--text-dim);
   font-size: 0.85rem;
+}
+
+.empty-state .empty-icon {
+  font-size: 1.6rem;
+  display: block;
+  margin-bottom: 0.4rem;
+}
+
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
 }
