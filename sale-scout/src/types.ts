@@ -10,7 +10,8 @@ export type SaleSource =
   | "craigslist"
   | "estatesales.net"
   | "estatesales.org"
-  | "facebook";
+  | "facebook"
+  | "reddit";
 
 export interface SaleVotes {
   /** Number of users who reported the sale is still going, recently. */

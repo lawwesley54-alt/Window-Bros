@@ -30,3 +30,22 @@ export async function geocodeAddress(
     label: first.display_name,
   };
 }
+
+/** Coordinates -> city/town name, via Nominatim reverse geocoding. Same usage-policy notes as geocodeAddress. */
+export async function reverseGeocodeCity(point: {
+  lat: number;
+  lng: number;
+}): Promise<string | null> {
+  const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${point.lat}&lon=${point.lng}&zoom=10`;
+
+  const res = await fetch(url);
+  if (!res.ok) return null;
+
+  const data = (await res.json()) as {
+    address?: { city?: string; town?: string; village?: string; county?: string };
+  };
+
+  const address = data.address;
+  if (!address) return null;
+  return address.city ?? address.town ?? address.village ?? address.county ?? null;
+}

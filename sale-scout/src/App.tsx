@@ -4,6 +4,9 @@ import MapView from "./components/MapView";
 import FilterBar from "./components/FilterBar";
 import SaleList from "./components/SaleList";
 import { mockSource } from "./sources/mockSource";
+import { craigslistRssAdapter } from "./sources/craigslistRssAdapter";
+import { redditAdapter } from "./sources/redditAdapter";
+import type { SaleSourceAdapter } from "./sources/types";
 import { computeLikelihoodScore } from "./lib/scoring";
 import { distanceMiles } from "./lib/geo";
 import { geocodeAddress } from "./lib/geocode";
@@ -12,6 +15,7 @@ import type { Sale, SaleCategory, ScoredSale } from "./types";
 const DEFAULT_CENTER: LatLngTuple = [30.2672, -97.7431];
 const ALL_CATEGORIES: SaleCategory[] = ["garage", "estate", "moving", "yard", "other"];
 const SCORE_REFRESH_MS = 30_000;
+const SOURCES: SaleSourceAdapter[] = [mockSource, craigslistRssAdapter, redditAdapter];
 
 type VoteOverrides = Record<string, { stillHere: number; over: number }>;
 
@@ -47,7 +51,25 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    mockSource.fetchSales({ lat: center[0], lng: center[1], radiusMiles }).then(setSales);
+    let cancelled = false;
+    const params = { lat: center[0], lng: center[1], radiusMiles };
+
+    Promise.allSettled(SOURCES.map((source) => source.fetchSales(params))).then((results) => {
+      if (cancelled) return;
+      const merged: Sale[] = [];
+      results.forEach((result, i) => {
+        if (result.status === "fulfilled") {
+          merged.push(...result.value);
+        } else {
+          console.warn(`${SOURCES[i].label} failed:`, result.reason);
+        }
+      });
+      setSales(merged);
+    });
+
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [center[0], center[1]]);
 
