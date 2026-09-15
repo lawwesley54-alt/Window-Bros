@@ -1,0 +1,31 @@
+{
+  "name": "sale-scout",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Map-first garage & estate sale finder with a live \"likelihood still active\" score.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "oxlint",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "leaflet": "^1.9.4",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-leaflet": "^5.0.0",
+    "react-leaflet-cluster": "^4.1.3"
+  },
+  "devDependencies": {
+    "@types/leaflet": "^1.9.20",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@vitejs/plugin-react": "^6.1.0",
+    "oxlint": "^1.79.0",
+    "typescript": "~6.0.2",
+    "vite": "^8.2.2",
+    "vitest": "^3.2.4"
+  }
+}
