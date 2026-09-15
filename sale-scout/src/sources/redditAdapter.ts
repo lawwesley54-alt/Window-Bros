@@ -1,7 +1,8 @@
 import type { Sale } from "../types";
 import type { SaleSearchParams, SaleSourceAdapter } from "./types";
-import { reverseGeocodeCity } from "../lib/geocode";
+import { geocodeAddress, reverseGeocodeCity } from "../lib/geocode";
 import { guessCategory } from "../lib/categorize";
+import { extractAddress, extractTimeWindow } from "../lib/extractDetails";
 
 const HOUR_MS = 60 * 60 * 1000;
 
@@ -63,32 +64,60 @@ export const redditAdapter: SaleSourceAdapter = {
     if (!res.ok) return [];
 
     const posts = parseRedditListings(await res.json());
+    const sales: Sale[] = [];
 
-    return posts.map((post) => {
+    // Sequential, not parallel: geocoding respects Nominatim's ~1 req/sec
+    // policy, and only runs at all for posts where an address was found.
+    for (const post of posts) {
       const postedAt = new Date(post.createdUtcSeconds * 1000).toISOString();
-      const startsAt = postedAt;
-      const endsAt = new Date(post.createdUtcSeconds * 1000 + 4 * HOUR_MS).toISOString();
       const text = `${post.title} ${post.selftext}`;
 
-      const sale: Sale = {
+      const timeWindow = extractTimeWindow(text, new Date(postedAt));
+      const startsAt = timeWindow?.startsAt ?? postedAt;
+      const endsAt =
+        timeWindow?.endsAt ??
+        new Date(post.createdUtcSeconds * 1000 + 4 * HOUR_MS).toISOString();
+
+      const foundAddress = extractAddress(text);
+      let lat = params.lat;
+      let lng = params.lng;
+      let address = `Somewhere near ${cityName} — see post for exact address`;
+
+      if (foundAddress) {
+        address = `${foundAddress}, ${cityName}`;
+        const geocoded = await geocodeAddress(`${foundAddress}, ${cityName}`).catch(() => null);
+        if (geocoded) {
+          lat = geocoded.lat;
+          lng = geocoded.lng;
+        }
+      }
+
+      const notes: string[] = [];
+      if (!timeWindow) notes.push("time window guessed from when the post appeared");
+      if (!foundAddress) notes.push("no address found in the post text");
+
+      sales.push({
         id: `reddit-${post.id}`,
         title: post.title,
         category: guessCategory(text),
-        address: `Somewhere near ${cityName} — see post for exact address`,
-        lat: params.lat,
-        lng: params.lng,
+        address,
+        lat,
+        lng,
         startsAt,
         endsAt,
         source: "reddit",
         sourceUrl: `https://www.reddit.com${post.permalink}`,
         description:
-          "Location approximated to your search area — Reddit posts rarely include a structured address. Open the post to confirm details.",
+          notes.length > 0
+            ? `${notes.join("; ")} — open the post to confirm.`
+            : "Details extracted from the Reddit post.",
         postedAt,
         updatedAt: postedAt,
         corroboratingSources: 1,
         votes: { stillHere: 0, over: 0 },
-      };
-      return sale;
-    });
+      });
+    }
+
+    return sales;
   },
 };

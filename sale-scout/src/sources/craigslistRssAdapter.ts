@@ -2,6 +2,7 @@ import type { Sale } from "../types";
 import type { SaleSearchParams, SaleSourceAdapter } from "./types";
 import { nearestCraigslistCity } from "../lib/craigslistCities";
 import { guessCategory } from "../lib/categorize";
+import { extractAddress, extractTimeWindow } from "../lib/extractDetails";
 
 const HOUR_MS = 60 * 60 * 1000;
 
@@ -78,14 +79,26 @@ export const craigslistRssAdapter: SaleSourceAdapter = {
       .filter((item) => item.sourceUrl)
       .map((item, index) => {
         const postedAt = item.postedAt ?? new Date().toISOString();
-        const startsAt = postedAt;
-        const endsAt = new Date(new Date(postedAt).getTime() + 4 * HOUR_MS).toISOString();
+        const timeWindow = extractTimeWindow(item.title, new Date(postedAt));
+        const startsAt = timeWindow?.startsAt ?? postedAt;
+        const endsAt =
+          timeWindow?.endsAt ??
+          new Date(new Date(postedAt).getTime() + 4 * HOUR_MS).toISOString();
+
+        const foundAddress = extractAddress(item.title);
+        const address = foundAddress
+          ? `${foundAddress}, near ${city.label}`
+          : `Near ${city.label} — see listing for exact address`;
+
+        const notes: string[] = [];
+        if (!timeWindow) notes.push("time window guessed from when the listing was posted");
+        if (!foundAddress) notes.push("exact address not in the listing title");
 
         const sale: Sale = {
           id: `craigslist-${item.sourceUrl ?? index}`,
           title: item.title,
           category: guessCategory(item.title),
-          address: `Near ${city.label} — see listing for exact address`,
+          address,
           lat: item.lat ?? city.lat,
           lng: item.lng ?? city.lng,
           startsAt,
@@ -93,7 +106,9 @@ export const craigslistRssAdapter: SaleSourceAdapter = {
           source: "craigslist",
           sourceUrl: item.sourceUrl ?? undefined,
           description:
-            "Time/address approximated from the Craigslist listing title — click through to confirm.",
+            notes.length > 0
+              ? `${notes.join("; ")} — click through to confirm.`
+              : "Details extracted from the Craigslist listing title.",
           postedAt,
           updatedAt: postedAt,
           corroboratingSources: 1,
