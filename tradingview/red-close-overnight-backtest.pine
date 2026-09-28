@@ -1,65 +1,94 @@
 //@version=6
-// Buy at the close of the day's last candle if it is red.
-// Sell at the close of the next day's first candle.
-// Dates: Nov 24 to Dec 24 of every year from 2021 to 2025. $10,000 per trade.
-// Use on AMZN, 1-hour chart, regular trading hours.
-strategy("Red Close Overnight Backtest", overlay = true, initial_capital = 10000, process_orders_on_close = true)
+// Red Close Overnight - Every Day
+// Buy at the close of the day's last 1-hour candle if it is red.
+// Sell at the close of the next day's first 1-hour candle.
+// $10,000 per trade. Tests EVERY trading day TradingView has data for.
+//
+// PUT THIS ON A DAILY (1D) CHART, regular trading hours.
+// It reads the 1-hour candles inside each day, so it can reach much further
+// back in time than running on a 1-hour chart.
+indicator("Red Close Overnight - Every Day", overlay = false)
 
-tz  = "America/New_York"
-yr  = year(time, tz)
-mo  = month(time, tz)
-dom = dayofmonth(time, tz)
+onlyDec = input.bool(false, "Only test Nov 24 - Dec 24 each year")
 
-// Nov 24 - Dec 24, 2021 through 2025
-inWindow = yr >= 2021 and yr <= 2025 and ((mo == 11 and dom >= 24) or (mo == 12 and dom <= 24))
+tz   = "America/New_York"
+hrO  = request.security_lower_tf(syminfo.tickerid, "60", open)
+hrC  = request.security_lower_tf(syminfo.tickerid, "60", close)
+n    = array.size(hrC)
 
-// Last candle of the day: closes at 4:00 PM, or 1:00 PM on the half days
-// (the Friday after Thanksgiving, and Dec 24).
-closeMin = hour(time_close, tz) * 60 + minute(time_close, tz)
-halfDay  = (mo == 11 and dayofweek(time, tz) == dayofweek.friday and dom >= 23 and dom <= 29) or (mo == 12 and dom == 24)
-lastBar  = closeMin == 16 * 60 or (halfDay and closeMin == 13 * 60)
-firstBar = session.isfirstbar_regular
-isRed    = close < open
+var float entry      = na
+var float shares     = 0.0
+var int   entryYear  = 0
+var years   = array.new_int()
+var profits = array.new_float()
+var trades  = array.new_int()
+var wins    = array.new_int()
+var float totalProfit = 0.0
+var int   totalTrades = 0
+var int   totalWins   = 0
 
-// Buy
-if inWindow and lastBar and isRed and strategy.position_size == 0
-    strategy.entry("Buy", strategy.long, qty = math.floor(10000 / close))
+if n > 0
+    // Sell: close of today's first 1-hour candle
+    if not na(entry)
+        p   = shares * (array.get(hrC, 0) - entry)
+        idx = array.indexof(years, entryYear)
+        if idx == -1
+            array.push(years, entryYear)
+            array.push(profits, 0.0)
+            array.push(trades, 0)
+            array.push(wins, 0)
+            idx := array.size(years) - 1
+        array.set(profits, idx, array.get(profits, idx) + p)
+        array.set(trades, idx, array.get(trades, idx) + 1)
+        totalProfit += p
+        totalTrades += 1
+        if p > 0
+            array.set(wins, idx, array.get(wins, idx) + 1)
+            totalWins += 1
+        entry := na
 
-// Sell
-if firstBar and strategy.position_size > 0
-    strategy.close("Buy", comment = "Sell")
+    // Buy: close of today's last 1-hour candle, if it is red
+    mo  = month(time, tz)
+    dom = dayofmonth(time, tz)
+    inPeriod = not onlyDec or (mo == 11 and dom >= 24) or (mo == 12 and dom <= 24)
+    lastO = array.get(hrO, n - 1)
+    lastC = array.get(hrC, n - 1)
+    if inPeriod and lastC < lastO
+        entry     := lastC
+        shares    := math.floor(10000 / lastC)
+        entryYear := year(time, tz)
+else
+    entry := na
 
-// Add up results for each year (2021 = row 0 ... 2025 = row 4)
-var profits = array.new_float(5, 0.0)
-var trades  = array.new_int(5, 0)
-var wins    = array.new_int(5, 0)
-var int counted = 0
-if strategy.closedtrades > counted
-    for i = counted to strategy.closedtrades - 1
-        idx = year(strategy.closedtrades.entry_time(i), tz) - 2021
-        if idx >= 0 and idx < 5
-            p = strategy.closedtrades.profit(i)
-            array.set(profits, idx, array.get(profits, idx) + p)
-            array.set(trades, idx, array.get(trades, idx) + 1)
-            if p > 0
-                array.set(wins, idx, array.get(wins, idx) + 1)
-    counted := strategy.closedtrades
+// Running total profit line
+plot(totalProfit, "Total profit ($)", color = totalProfit >= 0 ? color.green : color.red, linewidth = 2)
+hline(0, "Break even", color = color.gray)
 
-// Results table
-var table t = table.new(position.top_right, 4, 7, bgcolor = color.new(color.black, 15))
+// Results table: one row per year
+var table t = table.new(position.top_right, 5, 60, bgcolor = color.new(color.black, 15))
 if barstate.islast
-    table.cell(t, 0, 0, "Year", text_color = color.white)
-    table.cell(t, 1, 0, "Trades", text_color = color.white)
-    table.cell(t, 2, 0, "Win rate", text_color = color.white)
-    table.cell(t, 3, 0, "Profit", text_color = color.white)
-    for i = 0 to 4
-        n = array.get(trades, i)
-        p = array.get(profits, i)
-        table.cell(t, 0, i + 1, str.tostring(2021 + i), text_color = color.white)
-        table.cell(t, 1, i + 1, str.tostring(n), text_color = color.white)
-        table.cell(t, 2, i + 1, n > 0 ? str.tostring(100.0 * array.get(wins, i) / n, "#") + "%" : "-", text_color = color.white)
-        table.cell(t, 3, i + 1, n > 0 ? str.tostring(p, "$#,##0.00") : "no data", text_color = p >= 0 ? color.lime : color.red)
-    table.cell(t, 0, 6, "Total", text_color = color.white)
-    table.cell(t, 1, 6, str.tostring(strategy.closedtrades), text_color = color.white)
-    table.cell(t, 2, 6, strategy.closedtrades > 0 ? str.tostring(100.0 * strategy.wintrades / strategy.closedtrades, "#") + "%" : "-", text_color = color.white)
-    table.cell(t, 3, 6, str.tostring(strategy.netprofit, "$#,##0.00"), text_color = strategy.netprofit >= 0 ? color.lime : color.red)
+    if not timeframe.isdaily
+        table.cell(t, 0, 0, "Switch the chart to the 1D (daily) timeframe", text_color = color.yellow)
+    else
+        table.cell(t, 0, 0, "Year", text_color = color.white)
+        table.cell(t, 1, 0, "Trades", text_color = color.white)
+        table.cell(t, 2, 0, "Win rate", text_color = color.white)
+        table.cell(t, 3, 0, "Profit", text_color = color.white)
+        table.cell(t, 4, 0, "Avg / trade", text_color = color.white)
+        rows = math.min(array.size(years), 57)
+        if rows > 0
+            for i = 0 to rows - 1
+                k = array.get(trades, i)
+                p = array.get(profits, i)
+                c = p >= 0 ? color.lime : color.red
+                table.cell(t, 0, i + 1, str.tostring(array.get(years, i)), text_color = color.white)
+                table.cell(t, 1, i + 1, str.tostring(k), text_color = color.white)
+                table.cell(t, 2, i + 1, str.tostring(100.0 * array.get(wins, i) / k, "#") + "%", text_color = color.white)
+                table.cell(t, 3, i + 1, str.tostring(p, "$#,##0"), text_color = c)
+                table.cell(t, 4, i + 1, str.tostring(p / k, "$#,##0.00"), text_color = c)
+        tc = totalProfit >= 0 ? color.lime : color.red
+        table.cell(t, 0, rows + 1, "Total", text_color = color.white)
+        table.cell(t, 1, rows + 1, str.tostring(totalTrades), text_color = color.white)
+        table.cell(t, 2, rows + 1, totalTrades > 0 ? str.tostring(100.0 * totalWins / totalTrades, "#") + "%" : "-", text_color = color.white)
+        table.cell(t, 3, rows + 1, str.tostring(totalProfit, "$#,##0"), text_color = tc)
+        table.cell(t, 4, rows + 1, totalTrades > 0 ? str.tostring(totalProfit / totalTrades, "$#,##0.00") : "-", text_color = tc)
