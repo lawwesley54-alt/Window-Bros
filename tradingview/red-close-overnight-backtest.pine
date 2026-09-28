@@ -6,6 +6,9 @@
 // Results: Strategy Tester tab, plus a label on the chart for each year.
 strategy("Red Close Overnight Backtest", overlay = true, initial_capital = 10000, process_orders_on_close = true, max_labels_count = 100)
 
+// Long positions only: the strategy can never sell short
+strategy.risk.allow_entry_in(strategy.direction.long)
+
 tz  = "America/New_York"
 mo  = month(time, tz)
 dom = dayofmonth(time, tz)
