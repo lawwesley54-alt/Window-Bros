@@ -1,15 +1,9 @@
 //@version=6
-// Overnight Long/Short Predictor
-// At the close of each day's last candle, score 3 signals to guess whether
-// the stock will be higher or lower at the next day's first candle:
-//   1. Candle color:  red last candle = +1 (bounce), green = -1 (pullback)
-//   2. Trend:         price above 50-hour EMA = +1, below = -1
-//   3. RSI (14):      under 40 = +1 (oversold), over 60 = -1 (overbought)
-// Score +2 or more = BUY (long). Score -2 or less = SELL SHORT.
-// Otherwise no trade. Every trade closes at the next day's first candle.
+// Buy at the close of the day's last candle if it is red.
+// Sell at the close of the next day's first candle.
 // Dates: Nov 24, 2025 to Dec 24, 2025. $10,000 per trade.
-// Use on a 1-hour chart, regular trading hours.
-strategy("Overnight Long/Short Predictor", overlay = true, initial_capital = 10000, process_orders_on_close = true)
+// Use on AMZN, 1-hour chart, regular trading hours.
+strategy("Red Close Overnight Backtest", overlay = true, initial_capital = 10000, process_orders_on_close = true)
 
 startDate = 1763960400000   // Nov 24, 2025 00:00 New York
 endDate   = 1766638740000   // Dec 24, 2025 23:59 New York
@@ -22,41 +16,22 @@ closeMin = hour(time_close, tz) * 60 + minute(time_close, tz)
 halfDay  = (month(time, tz) == 11 and dayofmonth(time, tz) == 28) or (month(time, tz) == 12 and dayofmonth(time, tz) == 24)
 lastBar  = closeMin == 16 * 60 or (halfDay and closeMin == 13 * 60)
 firstBar = session.isfirstbar_regular
+isRed    = close < open
 
-// Prediction signals
-ema   = ta.ema(close, 50)
-rsi   = ta.rsi(close, 14)
-score = (close < open ? 1 : -1) + (close > ema ? 1 : -1) + (rsi < 40 ? 1 : rsi > 60 ? -1 : 0)
+// Buy
+if inWindow and lastBar and isRed and strategy.position_size == 0
+    strategy.entry("Buy", strategy.long, qty = math.floor(10000 / close))
 
-goLong  = inWindow and lastBar and score >= 2
-goShort = inWindow and lastBar and score <= -2
-qty     = math.floor(10000 / close)
-
-// Buy or sell short at the last candle's close
-if goLong and strategy.position_size == 0
-    strategy.entry("Long", strategy.long, qty = qty)
-if goShort and strategy.position_size == 0
-    strategy.entry("Short", strategy.short, qty = qty)
-
-// Close either trade at the next day's first candle
-if firstBar and strategy.position_size != 0
-    strategy.close_all(comment = "Exit")
-
-// Chart markers
-plot(ema, "50-hour EMA", color = color.orange)
-plotshape(goLong, "Buy signal", shape.triangleup, location.belowbar, color.green, size = size.small)
-plotshape(goShort, "Short signal", shape.triangledown, location.abovebar, color.red, size = size.small)
+// Sell
+if firstBar and strategy.position_size > 0
+    strategy.close("Buy", comment = "Sell")
 
 // Results
-var table t = table.new(position.top_right, 2, 4, bgcolor = color.new(color.black, 15))
+var table t = table.new(position.top_right, 2, 3, bgcolor = color.new(color.black, 15))
 if barstate.islast
-    total   = strategy.closedtrades
-    winRate = total > 0 ? 100.0 * strategy.wintrades / total : 0.0
     table.cell(t, 0, 0, "Net profit", text_color = color.white)
     table.cell(t, 1, 0, str.tostring(strategy.netprofit, "$#,##0.00"), text_color = strategy.netprofit >= 0 ? color.lime : color.red)
     table.cell(t, 0, 1, "Ending balance", text_color = color.white)
     table.cell(t, 1, 1, str.tostring(10000 + strategy.netprofit, "$#,##0.00"), text_color = color.white)
     table.cell(t, 0, 2, "Trades", text_color = color.white)
-    table.cell(t, 1, 2, str.tostring(total), text_color = color.white)
-    table.cell(t, 0, 3, "Win rate", text_color = color.white)
-    table.cell(t, 1, 3, str.tostring(winRate, "#.#") + "%", text_color = color.white)
+    table.cell(t, 1, 2, str.tostring(strategy.closedtrades), text_color = color.white)
