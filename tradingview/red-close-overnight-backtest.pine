@@ -18,10 +18,10 @@ strategy("Red Close Overnight Backtest",
      pyramiding = 0)
 
 // ---- Inputs ----------------------------------------------------------------
-defaultStart = timestamp("America/New_York", 2025, 11, 17, 0, 0)
-defaultEnd   = timestamp("America/New_York", 2025, 12, 31, 23, 59)
-startDate = input.time(defaultStart, "Start date", group = "Test window")
-endDate   = input.time(defaultEnd, "End date", group = "Test window")
+// Default dates: Nov 17, 2025 00:00 and Dec 31, 2025 23:59 (New York time).
+// Change them from the script's Settings (gear icon) instead of editing here.
+startDate = input.time(1763355600000, "Start date", group = "Test window")
+endDate   = input.time(1767243540000, "End date", group = "Test window")
 capital   = input.float(10000, "Amount invested per trade ($)", minval = 1, group = "Sizing")
 compound  = input.bool(false, "Compound (reinvest gains/losses each trade)", group = "Sizing")
 showTable = input.bool(true, "Show results table", group = "Display")
