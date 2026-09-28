@@ -15,6 +15,8 @@
 //   - Uptrend only:   only buy when price is above its 50-day average
 //   - Skip weekends:  no trade on Friday nights or the night before a holiday
 //   - Santa rally:    also trade the first days of January (through Jan 5)
+//   - Reinvest:       each trade uses the whole account instead of a fixed
+//                     $10,000, so wins AND losses get bigger over time
 // Commission and slippage: Settings > Properties.
 //
 // The summary label on the latest candle compares, for every year:
@@ -27,11 +29,12 @@ strategy("Red Close Overnight Backtest", overlay = true, initial_capital = 10000
 strategy.risk.allow_entry_in(strategy.direction.long)
 
 // ---- Settings ----
-minDrop    = input.float(0.5, "Minimum drop in the last candle (%)", minval = 0, step = 0.1, tooltip = "0 = any red candle")
+minDrop    = input.float(0.2, "Minimum drop in the last candle (%)", minval = 0, step = 0.1, tooltip = "0 = any red candle")
 skipEvents = input.bool(true, "Skip Fed, CPI, jobs report and quad witching nights")
 useTrend   = input.bool(false, "Only buy in an uptrend (above 50-day average)")
 skipLong   = input.bool(false, "Skip weekends and nights before holidays")
 santa      = input.bool(false, "Add Santa Claus rally (Jan 1 - Jan 5)")
+reinvest   = input.bool(true, "Reinvest winnings (trade size grows or shrinks with the account)")
 
 // Only run on a 1-hour chart
 rightTF = timeframe.period == "60"
@@ -79,7 +82,7 @@ upTrend = close > sma50
 ruleBuy = inWindow and lastBar and isRed and dropPct >= minDrop and (not skipEvents or not eventNight) and (not useTrend or upTrend) and (not skipLong or not longNight) and strategy.position_size == 0
 
 if ruleBuy
-    strategy.entry("Long", strategy.long, qty = math.floor(10000 / close))
+    strategy.entry("Long", strategy.long, qty = math.floor((reinvest ? strategy.equity : 10000) / close))
 
 // Sell when the next morning's first 1-hour candle closes
 if firstBar and strategy.position_size > 0
@@ -147,10 +150,11 @@ if barstate.islast and not rightTF
     label.new(bar_index, high, "WRONG TIMEFRAME\nThis test only works on the 1-hour chart.\nClick the timeframe at the top left (next to " + syminfo.ticker + ") and choose 1 hour.", style = label.style_label_left, color = color.orange, textcolor = color.white, size = size.large, textalign = text.align_left)
 if barstate.islast and rightTF
     rules = "Rule: red last candle falling " + str.tostring(minDrop, "#.##") + "%+" +
+         (reinvest ? ", reinvesting winnings" : "") +
          (skipEvents ? ", skip Fed/CPI/jobs/witching" : "") +
          (useTrend ? ", uptrend only" : "") +
          (skipLong ? ", skip weekends/holidays" : "")
-    txt = (syminfo.ticker != "AMZN" ? "NOTE: this chart is " + syminfo.ticker + ", not AMZN\n" : "") + syminfo.ticker + " - Nov & Dec" + (santa ? " + early Jan" : "") + ", $10,000 per trade\n" + rules + "\n"
+    txt = (syminfo.ticker != "AMZN" ? "NOTE: this chart is " + syminfo.ticker + ", not AMZN\n" : "") + syminfo.ticker + " - Nov & Dec" + (santa ? " + early Jan" : "") + (reinvest ? ", starting with $10,000" : ", $10,000 per trade") + "\n" + rules + "\n"
     trP = 0.0
     trT = 0
     trW = 0
