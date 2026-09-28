@@ -1,7 +1,8 @@
 //@version=6
 // Red Close Overnight Backtest (long only)
 // Buy at the close of the day's last 1-hour candle when it is red, then
-// sell at the next morning's 9:30 AM open. $10,000 per trade.
+// sell when the next morning's first 1-hour candle closes (about 10:30 AM).
+// $10,000 per trade.
 // Nov + Dec of every year from 2021 to 2025. Use on a 1-hour chart.
 //
 // TRADE HISTORY: open the "Strategy Tester" tab under the chart, then
@@ -18,9 +19,9 @@
 //
 // The summary label on the latest candle compares, for every year:
 //   YOUR RULE   - the strategy with your settings
-//   EVERY NIGHT - buying at every close and selling every open (no filter)
+//   EVERY NIGHT - buying at every close, selling after the first candle (no filter)
 //   HOLD        - buying at the start of the period and holding to the end
-strategy("Red Close Overnight Backtest", overlay = true, initial_capital = 10000, process_orders_on_close = true, calc_on_order_fills = true, max_labels_count = 500)
+strategy("Red Close Overnight Backtest", overlay = true, initial_capital = 10000, process_orders_on_close = true, max_labels_count = 500)
 
 // Long positions only: the strategy can never sell short
 strategy.risk.allow_entry_in(strategy.direction.long)
@@ -71,17 +72,13 @@ longNight  = dow == dayofweek.friday or str.contains(HOLIDAYS, tomorrow)
 sma50   = request.security(syminfo.tickerid, "D", ta.sma(close, 50)[1], lookahead = barmerge.lookahead_on)
 upTrend = close > sma50
 
-// ---- Your rule: buy at the close, sell at the next 9:30 AM open ----
+// ---- Your rule: buy at the close, sell when the first candle closes ----
 ruleBuy = inWindow and lastBar and isRed and dropPct >= minDrop and (not skipEvents or not eventNight) and (not useTrend or upTrend) and (not skipLong or not longNight) and strategy.position_size == 0
 
 if ruleBuy
     strategy.entry("Long", strategy.long, qty = math.floor(10000 / close))
 
-// Right after the buy fills at the close, queue the sell. It fills on the
-// next price the chart has, which is the next morning's 9:30 AM open.
-if lastBar and strategy.position_size > 0
-    strategy.close("Long", comment = "Sell 9:30 open")
-// Backup: if still holding on the first candle, sell there
+// Sell when the next morning's first 1-hour candle closes
 if firstBar and strategy.position_size > 0
     strategy.close("Long", comment = "Sell")
 
@@ -95,14 +92,12 @@ var hEnd   = array.new_float(5, na)
 var float eEntry  = na
 var float eShares = 0.0
 var int   eYear   = 0
-var int   eDone   = -1
 
-if firstBar and not na(eEntry) and bar_index != eDone
+if firstBar and not na(eEntry)
     i = eYear - 2021
-    array.set(eP, i, array.get(eP, i) + eShares * (open - eEntry))
+    array.set(eP, i, array.get(eP, i) + eShares * (close - eEntry))
     array.set(eT, i, array.get(eT, i) + 1)
     eEntry := na
-    eDone  := bar_index
 
 if inWindow and lastBar and na(eEntry)
     eEntry  := close
