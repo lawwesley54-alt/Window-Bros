@@ -33,6 +33,9 @@ useTrend   = input.bool(false, "Only buy in an uptrend (above 50-day average)")
 skipLong   = input.bool(false, "Skip weekends and nights before holidays")
 santa      = input.bool(false, "Add Santa Claus rally (Jan 1 - Jan 5)")
 
+// Only run on a 1-hour chart
+rightTF = timeframe.period == "60"
+
 // ---- Dates ----
 tz       = "America/New_York"
 yr       = year(time, tz)
@@ -40,7 +43,7 @@ mo       = month(time, tz)
 dom      = dayofmonth(time, tz)
 dow      = dayofweek(time, tz)
 testYear = mo == 1 ? yr - 1 : yr
-inWindow = testYear >= 2021 and testYear <= 2025 and (mo == 11 or mo == 12 or (santa and mo == 1 and dom <= 5))
+inWindow = rightTF and testYear >= 2021 and testYear <= 2025 and (mo == 11 or mo == 12 or (santa and mo == 1 and dom <= 5))
 
 // ---- Candles ----
 // Last candle of the day: closes at 4:00 PM, or 1:00 PM on the half days
@@ -140,12 +143,14 @@ plotshape(ruleBuy, "Buy point", shape.labelup, location.belowbar, color.green, t
 bgcolor(inWindow ? color.new(color.blue, 90) : na, title = "Test dates")
 
 // ---- Summary label ----
-if barstate.islast
+if barstate.islast and not rightTF
+    label.new(bar_index, high, "WRONG TIMEFRAME\nThis test only works on the 1-hour chart.\nClick the timeframe at the top left (next to " + syminfo.ticker + ") and choose 1 hour.", style = label.style_label_left, color = color.orange, textcolor = color.white, size = size.large, textalign = text.align_left)
+if barstate.islast and rightTF
     rules = "Rule: red last candle falling " + str.tostring(minDrop, "#.##") + "%+" +
          (skipEvents ? ", skip Fed/CPI/jobs/witching" : "") +
          (useTrend ? ", uptrend only" : "") +
          (skipLong ? ", skip weekends/holidays" : "")
-    txt = syminfo.ticker + " - Nov & Dec" + (santa ? " + early Jan" : "") + ", $10,000 per trade\n" + rules + "\n"
+    txt = (syminfo.ticker != "AMZN" ? "NOTE: this chart is " + syminfo.ticker + ", not AMZN\n" : "") + syminfo.ticker + " - Nov & Dec" + (santa ? " + early Jan" : "") + ", $10,000 per trade\n" + rules + "\n"
     trP = 0.0
     trT = 0
     trW = 0
