@@ -34,9 +34,9 @@ if buySignal
 if sellSignal
     strategy.close("Buy", comment = "Sell")
 
-// Show the buy and sell points on the chart, and shade the test dates
+// Show only the buy points on the chart, and shade the test dates.
+// (The sell still happens in the background so profit can be measured.)
 plotshape(buySignal, "Buy point", shape.labelup, location.belowbar, color.green, text = "BUY", textcolor = color.white, size = size.small)
-plotshape(sellSignal, "Sell point", shape.labeldown, location.abovebar, color.red, text = "SELL", textcolor = color.white, size = size.small)
 bgcolor(inWindow ? color.new(color.blue, 90) : na, title = "Test dates")
 
 // One label per year showing that year's profit and number of trades
