@@ -1,13 +1,10 @@
 //@version=6
-// Buy at the close of the day's last candle if it is red.
-// Close the long at the close of the next day's first candle.
+// Buy at the close of the day's last candle if it is red (long only).
+// Close the long at the next morning's OPEN (9:30 AM).
 // Dates: all of November and December, every year from 2021 to 2025. $10,000 per trade.
 // Use on AMZN, 1-hour chart. Only regular hours (9:30 AM - 4:00 PM) are used.
-// Results: Strategy Tester tab, plus a label on the chart for each year.
-strategy("Red Close Overnight Backtest", overlay = true, initial_capital = 10000, process_orders_on_close = true, max_labels_count = 100)
-
-// Long positions only: the strategy can never sell short
-strategy.risk.allow_entry_in(strategy.direction.long)
+// Results: a label on the chart for each year, plus a total label on the last candle.
+indicator("Red Close Overnight Backtest", overlay = true, max_labels_count = 100)
 
 tz  = "America/New_York"
 mo  = month(time, tz)
@@ -23,43 +20,52 @@ closeMin = hour(time_close, tz) * 60 + minute(time_close, tz)
 halfDay  = (mo == 11 and dayofweek(time, tz) == dayofweek.friday and dom >= 23 and dom <= 29) or (mo == 12 and dom == 24)
 isMarket = session.ismarket
 lastBar  = isMarket and (closeMin == 16 * 60 or (halfDay and closeMin == 13 * 60))
-// First regular-hours candle of a new day (ignores pre-market and after-hours)
+// First regular-hours candle of a new day; its open is the 9:30 AM open
 firstBar = isMarket and (not isMarket[1] or dayofmonth(time[1], tz) != dom)
 isRed    = close < open
 
-buySignal  = inWindow and lastBar and isRed and strategy.position_size == 0
-closeSignal = firstBar and strategy.position_size > 0
+var float entryPrice = na
+var float shares     = 0.0
+var int   entryYear  = 0
+var float yProfit    = 0.0
+var int   yTrades    = 0
+var int   yYear      = 0
+var label yLabel     = na
+var float totProfit  = 0.0
+var int   totTrades  = 0
+var int   totWins    = 0
 
-// Open a long position
-if buySignal
-    strategy.entry("Long", strategy.long, qty = math.floor(10000 / close))
-
-// Close the long position (this is not a short sale)
-if closeSignal
-    strategy.close("Long", comment = "Close long")
-
-// Show only the buy points on the chart, and shade the test dates.
-// (The long is closed in the background so profit can be measured.)
-plotshape(buySignal, "Buy point", shape.labelup, location.belowbar, color.green, text = "BUY", textcolor = color.white, size = size.small)
-bgcolor(inWindow ? color.new(color.blue, 90) : na, title = "Test dates")
-
-// One label per year showing that year's profit and number of trades
-var float yProfit = 0.0
-var int   yTrades = 0
-var int   yYear   = 0
-var label yLabel  = na
-var int   counted = 0
-if strategy.closedtrades > counted
-    for i = counted to strategy.closedtrades - 1
-        ey = year(strategy.closedtrades.entry_time(i), tz)
-        if ey != yYear
-            yYear   := ey
-            yProfit := 0.0
-            yTrades := 0
-            yLabel  := label.new(bar_index, high, "", style = label.style_label_down, textcolor = color.white)
-        yProfit += strategy.closedtrades.profit(i)
-        yTrades += 1
-    counted := strategy.closedtrades
+// Close the long at the morning open
+if firstBar and not na(entryPrice)
+    p = shares * (open - entryPrice)
+    if entryYear != yYear
+        yYear   := entryYear
+        yProfit := 0.0
+        yTrades := 0
+        yLabel  := label.new(bar_index, high, "", style = label.style_label_down, textcolor = color.white)
+    yProfit   += p
+    yTrades   += 1
+    totProfit += p
+    totTrades += 1
+    if p > 0
+        totWins += 1
     label.set_text(yLabel, str.tostring(yYear) + ": " + (yProfit >= 0 ? "+" : "") + str.tostring(yProfit, "$#,##0") + " (" + str.tostring(yTrades) + " trades)")
     label.set_xy(yLabel, bar_index, high)
     label.set_color(yLabel, yProfit >= 0 ? color.green : color.red)
+    entryPrice := na
+
+// Open a long position at the close of a red last candle
+buySignal = inWindow and lastBar and isRed and na(entryPrice)
+if buySignal
+    entryPrice := close
+    shares     := math.floor(10000 / close)
+    entryYear  := yr
+
+// Show only the buy points on the chart, and shade the test dates
+plotshape(buySignal, "Buy point", shape.labelup, location.belowbar, color.green, text = "BUY", textcolor = color.white, size = size.small)
+bgcolor(inWindow ? color.new(color.blue, 90) : na, title = "Test dates")
+
+// Total for all years, shown on the latest candle
+if barstate.islast
+    winRate = totTrades > 0 ? 100.0 * totWins / totTrades : 0.0
+    label.new(bar_index, high, "Total 2021-2025: " + (totProfit >= 0 ? "+" : "") + str.tostring(totProfit, "$#,##0") + "\n" + str.tostring(totTrades) + " trades, " + str.tostring(winRate, "#") + "% winners", style = label.style_label_left, color = totProfit >= 0 ? color.green : color.red, textcolor = color.white)
