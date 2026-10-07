@@ -18,6 +18,8 @@
 //   4. Buy more on red streaks: 2 red days in a row = 1.5x size,
 //      3 or more = 2x size.
 //   Size is capped at 150% of the account.
+//   6. Uptrend only (ON): bets over 100% are only made when the price is
+//      above its 20-day average; otherwise the trade is 100%.
 //   5. Losing-streak brake (ON): while the account is 20% or more below its
 //      highest point, no borrowed money is used (max 100%) until it recovers.
 //
@@ -41,6 +43,8 @@ greenOn   = input.bool(false, "3. Also buy green nights", group = G, inline = "g
 greenSize = input.int(50, "buy % of account", minval = 10, maxval = 200, step = 10, group = G, inline = "green")
 streakOn  = input.bool(false, "4. Buy more on red streaks (2 days = 1.5x, 3+ days = 2x)", group = G)
 maxSize   = input.int(150, "Never buy more than % of account", minval = 50, maxval = 200, step = 10, group = G)
+trendOn   = input.bool(true, "6. Only bet extra in an uptrend", group = G, inline = "trend")
+trendLen  = input.int(20, "above its __-day average", minval = 5, maxval = 200, step = 5, group = G, inline = "trend", tooltip = "Bets over 100% (borrowed money) are only made when the price is above this daily average. Otherwise the trade is 100%.")
 brakeOn   = input.bool(true, "5. Losing-streak brake: no margin while the account is down", group = G, inline = "brake")
 brakePct  = input.float(20, "% from its high", minval = 5, maxval = 80, step = 5, group = G, inline = "brake", tooltip = "When the account is this far below its highest point, trades are capped at 100% (no borrowed money) until it recovers")
 
@@ -98,6 +102,13 @@ else if greenOn and not isRed
 if tSize > maxSize / 100.0
     tSize := maxSize / 100.0
     why   += "\nCapped at " + str.tostring(maxSize) + "%"
+
+// Uptrend check: only use borrowed money when price is above its daily average
+// (yesterday's value, so nothing is peeked at early)
+trendAvg = request.security(syminfo.tickerid, "D", ta.sma(close, trendLen)[1], lookahead = barmerge.lookahead_on)
+if trendOn and tSize > 1.0 and close < trendAvg
+    tSize := 1.0
+    why   += "\nNot in an uptrend (below " + str.tostring(trendLen) + "-day average) -> no extra bet (100%)"
 
 // Losing-streak brake: no margin while the account is well below its high
 var float peakEquity = 0.0
@@ -208,7 +219,7 @@ bgcolor(inWindow ? color.new(color.blue, 94) : na, title = "Test dates")
 if barstate.islast and not rightTF
     label.new(bar_index, high, "WRONG TIMEFRAME\nThis test only works on the 1-hour chart.\nClick the timeframe at the top left (next to " + syminfo.ticker + ") and choose 1 hour.", style = label.style_label_left, color = color.orange, textcolor = color.white, size = size.large, textalign = text.align_left)
 if barstate.islast and rightTF
-    boosts = (letRun ? "let winners run, " : "") + (bigBet ? "bigger bets on big drops, " : "") + (greenOn ? "green nights, " : "") + (streakOn ? "red streaks, " : "") + (brakeOn ? "losing-streak brake, " : "")
+    boosts = (letRun ? "let winners run, " : "") + (bigBet ? "bigger bets on big drops, " : "") + (greenOn ? "green nights, " : "") + (streakOn ? "red streaks, " : "") + (brakeOn ? "losing-streak brake, " : "") + (trendOn ? "extra bets only in uptrends, " : "")
     txt = (syminfo.ticker != "AMZN" ? "NOTE: this chart is " + syminfo.ticker + ", not AMZN\n" : "") +
          syminfo.ticker + " - " + period + ", " + (reinvest ? "starting with $10,000, reinvesting winnings" : "$10,000 base trade") +
          "\nRule: buy a red last candle, sell after the first candle next day" +
