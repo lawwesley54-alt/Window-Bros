@@ -8,15 +8,16 @@
 //   SELL when the next morning's first 1-hour candle closes (about 10:30 AM).
 // Starts with $10,000. Use on a 1-hour chart, regular trading hours.
 //
-// BIGGER PAYOUT (MORE RISK) - each one can be turned on/off in the settings:
+// BIGGER PAYOUT (MORE RISK) - ON by default (the two steadiest):
 //   1. Let winners run: if the morning's first candle is green, keep holding
 //      until a candle turns red or the day ends.
 //   2. Bet bigger on bigger drops: if the last candle fell 0.5% or more,
 //      buy 150% of the account instead of 100% (uses margin).
+// OFF by default (riskier, made results worse) - turn on in the settings:
 //   3. Also buy green nights, at 50% size.
 //   4. Buy more on red streaks: 2 red days in a row = 1.5x size,
 //      3 or more = 2x size.
-//   Size is capped at 200% of the account.
+//   Size is capped at 150% of the account.
 //
 // TRADE HISTORY: Strategy Tester tab > List of Trades. Hover over a BUY tag
 // to see why it bought that size.
@@ -27,17 +28,17 @@ strategy.risk.allow_entry_in(strategy.direction.long)
 
 // ---- Settings ----
 reinvest  = input.bool(true, "Reinvest winnings (trade size grows or shrinks with the account)")
-yearsAgo  = input.int(1, "Which year to test", minval = 0, maxval = 5, tooltip = "0 = the last 12 months\n1 = the 12 months before that (13-24 months ago)\n2 = 25-36 months ago, and so on")
+yearsAgo  = input.int(0, "Which year to test", minval = 0, maxval = 5, tooltip = "0 = the last 12 months\n1 = the 12 months before that (13-24 months ago)\n2 = 25-36 months ago, and so on")
 minDrop   = input.float(0.0, "Minimum drop in the last candle (%)", minval = 0, step = 0.1, tooltip = "0 = any red candle")
 G         = "Bigger payout (more risk)"
 letRun    = input.bool(true, "1. Let winners run (hold while the morning is green)", group = G)
 bigBet    = input.bool(true, "2. Bet bigger on bigger drops", group = G)
 bigDrop   = input.float(0.5, "    drop of at least %", minval = 0.1, step = 0.1, group = G, inline = "big")
 bigSize   = input.int(150, "buy % of account", minval = 100, maxval = 200, step = 10, group = G, inline = "big")
-greenOn   = input.bool(true, "3. Also buy green nights", group = G, inline = "green")
+greenOn   = input.bool(false, "3. Also buy green nights", group = G, inline = "green")
 greenSize = input.int(50, "buy % of account", minval = 10, maxval = 200, step = 10, group = G, inline = "green")
-streakOn  = input.bool(true, "4. Buy more on red streaks (2 days = 1.5x, 3+ days = 2x)", group = G)
-maxSize   = input.int(200, "Never buy more than % of account", minval = 50, maxval = 200, step = 10, group = G)
+streakOn  = input.bool(false, "4. Buy more on red streaks (2 days = 1.5x, 3+ days = 2x)", group = G)
+maxSize   = input.int(150, "Never buy more than % of account", minval = 50, maxval = 200, step = 10, group = G)
 
 // Only run on a 1-hour chart
 rightTF = timeframe.period == "60"
