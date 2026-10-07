@@ -1,19 +1,21 @@
 //@version=6
-// Red Close Overnight Backtest - Last 12 Months (long only, with safety filters)
+// Red Close Overnight Backtest - Last 12 Months (long only, smart trade size)
 // Every trading day of the last 12 months:
-//   BUY  at the close of the day's last 1-hour candle, if that candle is red
-//        AND it is not a "bad day" (see safety filters below).
+//   BUY  at the close of the day's last 1-hour candle, if that candle is red.
+//        It buys EVERY red night, but buys LESS on risky nights.
 //   SELL when the next morning's first 1-hour candle closes (about 10:30 AM).
-// Starts with $10,000. Use on AMZN, 1-hour chart, regular trading hours.
+// A normal trade is $10,000. Use on AMZN, 1-hour chart, regular trading hours.
 //
-// SAFETY FILTERS (all on by default; turn each on/off with the gear icon):
-//   1. Downtrend:     skip when the stock is below its 50-day average
-//   2. Crash day:     skip when the stock fell more than 3% that day
-//   3. Market selloff: skip when the whole market (SPY) fell more than 1.5% that day
-//   4. Earnings:      skip the night the company reports earnings
-//   5. Fed days:      skip the night of a Federal Reserve rate decision
-//   6. Weekends/holidays: skip Friday nights and nights before a market holiday
-// Skipped nights get a small gray "skip" tag; hover it to see why.
+// TRADE SIZE: a normal night uses the full amount. Each risk below cuts the
+// size (risks stack, but never below the minimum size):
+//   Downtrend (below 50-day average) ........ 50%
+//   Stock fell more than 3% today ........... 50%
+//   Whole market (SPY) fell more than 1.5% .. 50%
+//   Earnings tonight ........................ 25%
+//   Fed rate decision today ................. 50%
+//   Friday night / holiday tomorrow ......... 75%
+// All the percentages can be changed with the gear icon.
+// Each BUY tag shows the size used; hover it to see why.
 //
 // TRADE HISTORY: Strategy Tester tab > List of Trades.
 strategy("Red Close Overnight - Last 12 Months", overlay = true, initial_capital = 10000, process_orders_on_close = true, max_labels_count = 500)
@@ -22,16 +24,18 @@ strategy("Red Close Overnight - Last 12 Months", overlay = true, initial_capital
 strategy.risk.allow_entry_in(strategy.direction.long)
 
 // ---- Settings ----
-reinvest   = input.bool(true, "Reinvest winnings (trade size grows or shrinks with the account)")
-minDrop    = input.float(0.0, "Minimum drop in the last candle (%)", minval = 0, step = 0.1, tooltip = "0 = any red candle")
-useTrend   = input.bool(true, "Skip downtrends (below 50-day average)", group = "Safety filters")
-useCrash   = input.bool(true, "Skip crash days", group = "Safety filters", inline = "crash")
-crashPct   = input.float(3.0, "fell more than %", minval = 0.5, step = 0.5, group = "Safety filters", inline = "crash")
-useMarket  = input.bool(true, "Skip market selloffs", group = "Safety filters", inline = "mkt")
-marketPct  = input.float(1.5, "SPY fell more than %", minval = 0.5, step = 0.5, group = "Safety filters", inline = "mkt")
-useEarn    = input.bool(true, "Skip earnings nights", group = "Safety filters")
-useFed     = input.bool(true, "Skip Fed decision days", group = "Safety filters")
-useWeekend = input.bool(true, "Skip Friday nights and nights before holidays", group = "Safety filters")
+reinvest  = input.bool(false, "Reinvest winnings (trade size grows or shrinks with the account)")
+minDrop   = input.float(0.0, "Minimum drop in the last candle (%)", minval = 0, step = 0.1, tooltip = "0 = any red candle")
+G         = "Trade size on risky nights (% of a normal trade)"
+szTrend   = input.int(50, "Downtrend (below 50-day average)", minval = 0, maxval = 100, step = 5, group = G)
+szCrash   = input.int(50, "Stock fell a lot today", minval = 0, maxval = 100, step = 5, group = G, inline = "c")
+crashPct  = input.float(3.0, "more than %", minval = 0.5, step = 0.5, group = G, inline = "c")
+szMarket  = input.int(50, "Market (SPY) fell a lot today", minval = 0, maxval = 100, step = 5, group = G, inline = "m")
+marketPct = input.float(1.5, "more than %", minval = 0.5, step = 0.5, group = G, inline = "m")
+szEarn    = input.int(25, "Earnings tonight", minval = 0, maxval = 100, step = 5, group = G)
+szFed     = input.int(50, "Fed rate decision today", minval = 0, maxval = 100, step = 5, group = G)
+szWeekend = input.int(75, "Friday night / holiday tomorrow", minval = 0, maxval = 100, step = 5, group = G)
+szMin     = input.int(25, "Never buy less than", minval = 0, maxval = 100, step = 5, group = G, tooltip = "Smallest trade size, even when several risks stack")
 
 // Only run on a 1-hour chart
 rightTF = timeframe.period == "60"
@@ -89,27 +93,39 @@ nextDay   = time + (dow == dayofweek.friday ? 3 : 1) * 86400000
 nextKey   = year(nextDay, tz) * 10000 + month(nextDay, tz) * 100 + dayofmonth(nextDay, tz)
 isWeekend = dow == dayofweek.friday or str.contains(HOLIDAYS, str.tostring(nextKey))
 
-// Why tonight would be a bad night (empty = safe)
+// ---- Trade size for tonight ----
+tSize  = 1.0
 reason = ""
-reason += useTrend and close < sma50 ? "Downtrend: below 50-day average\n" : ""
-reason += useCrash and dayChange < -crashPct ? "Crash day: stock fell " + str.tostring(-dayChange, "#.#") + "% today\n" : ""
-reason += useMarket and spyChange < -marketPct ? "Market selloff: SPY fell " + str.tostring(-spyChange, "#.#") + "% today\n" : ""
-reason += useEarn and isEarnings ? "Earnings tonight\n" : ""
-reason += useFed and isFed ? "Fed rate decision today\n" : ""
-reason += useWeekend and isWeekend ? (dow == dayofweek.friday ? "Friday night (weekend gap)\n" : "Market holiday tomorrow\n") : ""
-safe = reason == ""
+if close < sma50
+    tSize  *= szTrend / 100.0
+    reason += "Downtrend: below 50-day average -> " + str.tostring(szTrend) + "%\n"
+if dayChange < -crashPct
+    tSize  *= szCrash / 100.0
+    reason += "Stock fell " + str.tostring(-dayChange, "#.#") + "% today -> " + str.tostring(szCrash) + "%\n"
+if spyChange < -marketPct
+    tSize  *= szMarket / 100.0
+    reason += "Market (SPY) fell " + str.tostring(-spyChange, "#.#") + "% today -> " + str.tostring(szMarket) + "%\n"
+if isEarnings
+    tSize  *= szEarn / 100.0
+    reason += "Earnings tonight -> " + str.tostring(szEarn) + "%\n"
+if isFed
+    tSize  *= szFed / 100.0
+    reason += "Fed rate decision today -> " + str.tostring(szFed) + "%\n"
+if isWeekend
+    tSize  *= szWeekend / 100.0
+    reason += (dow == dayofweek.friday ? "Friday night (weekend gap)" : "Market holiday tomorrow") + " -> " + str.tostring(szWeekend) + "%\n"
+tSize := math.max(tSize, szMin / 100.0)
 
-// ---- Buy at the close of a red last candle on a safe day ----
+// ---- Buy at the close of EVERY red last candle, sized by risk ----
 redSignal = inWindow and lastBar and isRed and dropPct >= minDrop and strategy.position_size == 0
-ruleBuy   = redSignal and safe
+base      = reinvest ? strategy.equity : 10000
+qty       = math.floor(base * tSize / close)
+ruleBuy   = redSignal and qty > 0
 if ruleBuy
-    strategy.entry("Long", strategy.long, qty = math.floor((reinvest ? strategy.equity : 10000) / close))
-
-// Mark the red nights that were skipped, with the reason
-var int skipped = 0
-if redSignal and not safe
-    skipped += 1
-    label.new(bar_index, low, "skip", style = label.style_label_up, color = color.gray, textcolor = color.white, size = size.tiny, yloc = yloc.belowbar, tooltip = "Skipped this red close:\n" + reason)
+    strategy.entry("Long", strategy.long, qty = qty)
+    label.new(bar_index, low, "BUY " + str.tostring(tSize * 100, "#") + "%", style = label.style_label_up, yloc = yloc.belowbar,
+         color = tSize >= 1 ? color.green : tSize >= 0.5 ? color.new(color.green, 40) : color.orange, textcolor = color.white, size = size.small,
+         tooltip = "Buying " + str.tostring(tSize * 100, "#") + "% of a normal trade: $" + str.tostring(qty * close, "#,##0") + " (" + str.tostring(qty) + " shares)\n" + (reason == "" ? "No risks found tonight - full size" : reason))
 
 // ---- Sell when the next morning's first candle closes ----
 if firstBar and strategy.position_size > 0
@@ -138,7 +154,7 @@ slot(k, ks, a, b, c, d, e) =>
         i := array.size(ks) - 1
     i
 
-// Comparison: every red last candle with NO safety filters ($10,000 per trade)
+// Comparison: every red last candle at full size ($10,000 per trade)
 var float eEntry  = na
 var float eShares = 0.0
 var int   eKey    = 0
@@ -179,7 +195,6 @@ if strategy.closedtrades > counted
     counted := strategy.closedtrades
 
 // ---- Chart markers ----
-plotshape(ruleBuy, "Buy point", shape.labelup, location.belowbar, color.green, text = "BUY", textcolor = color.white, size = size.small)
 plot(sma50, "50-day average", color = color.new(color.orange, 30))
 bgcolor(inWindow ? color.new(color.blue, 94) : na, title = "Test dates")
 
@@ -187,12 +202,9 @@ bgcolor(inWindow ? color.new(color.blue, 94) : na, title = "Test dates")
 if barstate.islast and not rightTF
     label.new(bar_index, high, "WRONG TIMEFRAME\nThis test only works on the 1-hour chart.\nClick the timeframe at the top left (next to " + syminfo.ticker + ") and choose 1 hour.", style = label.style_label_left, color = color.orange, textcolor = color.white, size = size.large, textalign = text.align_left)
 if barstate.islast and rightTF
-    filters = (useTrend ? "downtrends, " : "") + (useCrash ? "crash days, " : "") + (useMarket ? "market selloffs, " : "") + (useEarn ? "earnings, " : "") + (useFed ? "Fed days, " : "") + (useWeekend ? "weekends/holidays, " : "")
     txt = (syminfo.ticker != "AMZN" ? "NOTE: this chart is " + syminfo.ticker + ", not AMZN\n" : "") +
          syminfo.ticker + " - last 12 months, " + (reinvest ? "starting with $10,000, reinvesting winnings" : "$10,000 per trade") +
-         "\nBuy a red last candle, sell after the first candle next day" +
-         "\nSafety filters: " + (filters == "" ? "none" : str.substring(filters, 0, str.length(filters) - 2)) +
-         "\nRed nights skipped as risky: " + str.tostring(skipped) + "\n"
+         "\nBuy every red last candle (smaller on risky nights), sell after the first candle next day\n"
     trP = 0.0
     trT = 0
     trW = 0
@@ -213,11 +225,11 @@ if barstate.islast and rightTF
             teP += np
             teT += nt
             mName = str.format_time(timestamp(tz, math.floor(k / 100), k % 100, 15, 12, 0), "MMM yyyy", tz)
-            txt += "\n" + mName + ":  SAFE RULE " + (t > 0 ? money(p) + " (" + str.tostring(t) + " trades, " + str.tostring(100.0 * w / t, "#") + "% wins)" : "no trades") +
-                 "  |  NO FILTERS " + (nt > 0 ? money(np) : "-")
+            txt += "\n" + mName + ":  SMART SIZE " + (t > 0 ? money(p) + " (" + str.tostring(t) + " trades, " + str.tostring(100.0 * w / t, "#") + "% wins)" : "no trades") +
+                 "  |  FULL SIZE " + (nt > 0 ? money(np) : "-")
     hold = na(hStart) ? 0.0 : math.floor(10000 / hStart) * (hEnd - hStart)
-    txt += "\n\nTOTAL:  SAFE RULE " + money(trP) + " (" + str.tostring(trT) + " trades, " + (trT > 0 ? str.tostring(100.0 * trW / trT, "#") : "0") + "% wins)" +
-         "  |  NO FILTERS " + money(teP) + " (" + str.tostring(teT) + " trades)" +
+    txt += "\n\nTOTAL:  SMART SIZE " + money(trP) + " (" + str.tostring(trT) + " trades, " + (trT > 0 ? str.tostring(100.0 * trW / trT, "#") : "0") + "% wins)" +
+         "  |  FULL SIZE " + money(teP) + " (" + str.tostring(teT) + " trades)" +
          "  |  HOLD " + money(hold)
     txt += "\nFull trade history: Strategy Tester > List of Trades"
     label.new(bar_index, high, txt, style = label.style_label_left, color = trP >= 0 ? color.new(color.green, 10) : color.new(color.red, 10), textcolor = color.white, textalign = text.align_left)
