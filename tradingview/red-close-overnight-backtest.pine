@@ -1,52 +1,37 @@
 //@version=6
-// Red Close Overnight Backtest (long only)
-// Buy at the close of the day's last 1-hour candle when it is red, then
-// sell when the next morning's first 1-hour candle closes (about 10:30 AM).
-// $10,000 per trade.
-// Nov + Dec of every year from 2021 to 2025. Use on a 1-hour chart.
+// Red Close Overnight Backtest - Last 12 Months (long only)
+// Every trading day of the last 12 months:
+//   BUY  at the close of the day's last 1-hour candle, if that candle is red.
+//   SELL when the next morning's first 1-hour candle closes (about 10:30 AM).
+// Starts with $10,000. Use on AMZN, 1-hour chart, regular trading hours.
 //
-// TRADE HISTORY: open the "Strategy Tester" tab under the chart, then
-// "List of Trades" to see every buy and sell with dates, prices and profit.
+// TRADE HISTORY: Strategy Tester tab > List of Trades (every buy and sell
+// with dates, prices and profit). Hover over a trade label on the chart for
+// the same details.
 //
-// Change the rules in Settings (gear icon):
-//   - Minimum drop:   the last candle must fall at least this much (%)
-//   - Skip events:    no trade on Fed days, the night before CPI / jobs
-//                     reports, and around quad witching (3rd Friday of Dec)
-//   - Uptrend only:   only buy when price is above its 50-day average
-//   - Skip weekends:  no trade on Friday nights or the night before a holiday
-//   - Santa rally:    also trade the first days of January (through Jan 5)
-//   - Reinvest:       each trade uses the whole account instead of a fixed
-//                     $10,000, so wins AND losses get bigger over time
-// Commission and slippage: Settings > Properties.
-//
-// The summary label on the latest candle compares, for every year:
-//   YOUR RULE   - the strategy with your settings
-//   EVERY NIGHT - buying at every close, selling after the first candle (no filter)
-//   HOLD        - buying at the start of the period and holding to the end
-strategy("Red Close Overnight Backtest", overlay = true, initial_capital = 10000, process_orders_on_close = true, max_labels_count = 500)
+// The summary label on the latest candle shows each month, compared with:
+//   EVERY NIGHT - buying at every close and selling after the first candle
+//                 (red or not), $10,000 per trade
+//   HOLD        - buying 12 months ago and holding until today
+strategy("Red Close Overnight - Last 12 Months", overlay = true, initial_capital = 10000, process_orders_on_close = true, max_labels_count = 500)
 
 // Long positions only: the strategy can never sell short
 strategy.risk.allow_entry_in(strategy.direction.long)
 
 // ---- Settings ----
-minDrop    = input.float(0.2, "Minimum drop in the last candle (%)", minval = 0, step = 0.1, tooltip = "0 = any red candle")
-skipEvents = input.bool(true, "Skip Fed, CPI, jobs report and quad witching nights")
-useTrend   = input.bool(false, "Only buy in an uptrend (above 50-day average)")
-skipLong   = input.bool(false, "Skip weekends and nights before holidays")
-santa      = input.bool(false, "Add Santa Claus rally (Jan 1 - Jan 5)")
-reinvest   = input.bool(true, "Reinvest winnings (trade size grows or shrinks with the account)")
+minDrop  = input.float(0.0, "Minimum drop in the last candle (%)", minval = 0, step = 0.1, tooltip = "0 = any red candle")
+reinvest = input.bool(true, "Reinvest winnings (trade size grows or shrinks with the account)")
 
 // Only run on a 1-hour chart
 rightTF = timeframe.period == "60"
 
-// ---- Dates ----
-tz       = "America/New_York"
-yr       = year(time, tz)
-mo       = month(time, tz)
-dom      = dayofmonth(time, tz)
-dow      = dayofweek(time, tz)
-testYear = mo == 1 ? yr - 1 : yr
-inWindow = rightTF and testYear >= 2021 and testYear <= 2025 and (mo == 11 or mo == 12 or (santa and mo == 1 and dom <= 5))
+// ---- Last 12 months ----
+tz        = "America/New_York"
+startTime = timenow - 365 * 86400000
+inWindow  = rightTF and time >= startTime
+mo        = month(time, tz)
+dom       = dayofmonth(time, tz)
+dow       = dayofweek(time, tz)
 
 // ---- Candles ----
 // Last candle of the day: closes at 4:00 PM, or 1:00 PM on the half days
@@ -55,85 +40,76 @@ closeMin = hour(time_close, tz) * 60 + minute(time_close, tz)
 halfDay  = (mo == 11 and dow == dayofweek.friday and dom >= 23 and dom <= 29) or (mo == 12 and dom == 24)
 isMarket = session.ismarket
 lastBar  = isMarket and (closeMin == 16 * 60 or (halfDay and closeMin == 13 * 60))
-// First regular-hours candle of a new day; its open is the 9:30 AM open
+// First regular-hours candle of a new day
 firstBar = isMarket and (not isMarket[1] or dayofmonth(time[1], tz) != dom)
 isRed    = close < open
 dropPct  = (open - close) / open * 100
 
-// ---- Risky nights ----
-FED      = "2021-11-03,2021-12-15,2022-11-02,2022-12-14,2023-11-01,2023-12-13,2024-11-07,2024-12-18,2025-12-10"
-DATA     = "2021-11-05,2021-11-10,2021-12-03,2021-12-10,2022-01-07,2022-11-04,2022-11-10,2022-12-02,2022-12-13,2023-01-06,2023-11-03,2023-11-14,2023-12-08,2023-12-12,2024-01-05,2024-11-01,2024-11-13,2024-12-06,2024-12-11,2025-01-10,2025-11-20,2025-12-16,2025-12-18,2026-01-09"
-HOLIDAYS = "2021-11-25,2021-12-24,2022-11-24,2022-12-26,2023-01-02,2023-11-23,2023-12-25,2024-01-01,2024-11-28,2024-12-25,2025-01-01,2025-11-27,2025-12-25,2026-01-01"
-
-nextDay  = time + (dow == dayofweek.friday ? 3 : 1) * 86400000
-today    = str.format_time(time, "yyyy-MM-dd", tz)
-tomorrow = str.format_time(nextDay, "yyyy-MM-dd", tz)
-
-isWitching(t) => month(t, tz) == 12 and dayofweek(t, tz) == dayofweek.friday and dayofmonth(t, tz) >= 15 and dayofmonth(t, tz) <= 21
-
-eventNight = str.contains(FED, today) or str.contains(DATA, tomorrow) or isWitching(time) or isWitching(nextDay)
-longNight  = dow == dayofweek.friday or str.contains(HOLIDAYS, tomorrow)
-
-// ---- Trend ----
-sma50   = request.security(syminfo.tickerid, "D", ta.sma(close, 50)[1], lookahead = barmerge.lookahead_on)
-upTrend = close > sma50
-
-// ---- Your rule: buy at the close, sell when the first candle closes ----
-ruleBuy = inWindow and lastBar and isRed and dropPct >= minDrop and (not skipEvents or not eventNight) and (not useTrend or upTrend) and (not skipLong or not longNight) and strategy.position_size == 0
-
+// ---- Buy at the close of a red last candle ----
+ruleBuy = inWindow and lastBar and isRed and dropPct >= minDrop and strategy.position_size == 0
 if ruleBuy
     strategy.entry("Long", strategy.long, qty = math.floor((reinvest ? strategy.equity : 10000) / close))
 
-// Sell when the next morning's first 1-hour candle closes
+// ---- Sell when the next morning's first candle closes ----
 if firstBar and strategy.position_size > 0
     strategy.close("Long", comment = "Sell")
 
-// ---- Comparison: buy every night (no filter) ----
+// ---- Results per month ----
 money(x) => (x >= 0 ? "+" : "") + str.tostring(x, "$#,##0.00")
+monthKey(t) => year(t, tz) * 100 + month(t, tz)
 
-var eP     = array.new_float(5, 0.0)
-var eT     = array.new_int(5, 0)
-var hStart = array.new_float(5, na)
-var hEnd   = array.new_float(5, na)
+var keys = array.new_int()
+var rP   = array.new_float()
+var rT   = array.new_int()
+var rW   = array.new_int()
+var eP   = array.new_float()
+var eT   = array.new_int()
+
+slot(k, ks, a, b, c, d, e) =>
+    i = array.indexof(ks, k)
+    if i == -1
+        array.push(ks, k)
+        array.push(a, 0.0)
+        array.push(b, 0)
+        array.push(c, 0)
+        array.push(d, 0.0)
+        array.push(e, 0)
+        i := array.size(ks) - 1
+    i
+
+// Every night comparison ($10,000 per trade, no red filter)
 var float eEntry  = na
 var float eShares = 0.0
-var int   eYear   = 0
-
+var int   eKey    = 0
 if firstBar and not na(eEntry)
-    i = eYear - 2021
+    i = slot(eKey, keys, rP, rT, rW, eP, eT)
     array.set(eP, i, array.get(eP, i) + eShares * (close - eEntry))
     array.set(eT, i, array.get(eT, i) + 1)
     eEntry := na
-
 if inWindow and lastBar and na(eEntry)
     eEntry  := close
     eShares := math.floor(10000 / close)
-    eYear   := testYear
+    eKey    := monthKey(time)
 
-// ---- Comparison: buy and hold for the whole period ----
+// Hold comparison
+var float hStart = na
+var float hEnd   = na
 if inWindow and isMarket
-    hi = testYear - 2021
-    if na(array.get(hStart, hi))
-        array.set(hStart, hi, open)
-    array.set(hEnd, hi, close)
+    if na(hStart)
+        hStart := open
+    hEnd := close
 
-// ---- Your rule's results per year, with a label on every trade ----
-var rP = array.new_float(5, 0.0)
-var rT = array.new_int(5, 0)
-var rW = array.new_int(5, 0)
+// Your rule's trades: monthly totals and a label on every trade
 var int counted = 0
 if strategy.closedtrades > counted
     for k = counted to strategy.closedtrades - 1
         et = strategy.closedtrades.entry_time(k)
-        ey = year(et, tz)
-        ey := month(et, tz) == 1 ? ey - 1 : ey
         p  = strategy.closedtrades.profit(k)
-        i  = ey - 2021
-        if i >= 0 and i < 5
-            array.set(rP, i, array.get(rP, i) + p)
-            array.set(rT, i, array.get(rT, i) + 1)
-            if p > 0
-                array.set(rW, i, array.get(rW, i) + 1)
+        i  = slot(monthKey(et), keys, rP, rT, rW, eP, eT)
+        array.set(rP, i, array.get(rP, i) + p)
+        array.set(rT, i, array.get(rT, i) + 1)
+        if p > 0
+            array.set(rW, i, array.get(rW, i) + 1)
         tip = "Bought " + str.format_time(et, "EEE MMM d, yyyy h:mm a", tz) + " at $" + str.tostring(strategy.closedtrades.entry_price(k), "#,##0.00") +
              "\nSold " + str.format_time(strategy.closedtrades.exit_time(k), "EEE MMM d, yyyy h:mm a", tz) + " at $" + str.tostring(strategy.closedtrades.exit_price(k), "#,##0.00") +
              "\nShares: " + str.tostring(strategy.closedtrades.size(k)) +
@@ -143,44 +119,40 @@ if strategy.closedtrades > counted
 
 // ---- Chart markers ----
 plotshape(ruleBuy, "Buy point", shape.labelup, location.belowbar, color.green, text = "BUY", textcolor = color.white, size = size.small)
-bgcolor(inWindow ? color.new(color.blue, 90) : na, title = "Test dates")
+bgcolor(inWindow ? color.new(color.blue, 94) : na, title = "Test dates")
 
 // ---- Summary label ----
 if barstate.islast and not rightTF
     label.new(bar_index, high, "WRONG TIMEFRAME\nThis test only works on the 1-hour chart.\nClick the timeframe at the top left (next to " + syminfo.ticker + ") and choose 1 hour.", style = label.style_label_left, color = color.orange, textcolor = color.white, size = size.large, textalign = text.align_left)
 if barstate.islast and rightTF
-    rules = "Rule: red last candle falling " + str.tostring(minDrop, "#.##") + "%+" +
-         (reinvest ? ", reinvesting winnings" : "") +
-         (skipEvents ? ", skip Fed/CPI/jobs/witching" : "") +
-         (useTrend ? ", uptrend only" : "") +
-         (skipLong ? ", skip weekends/holidays" : "")
-    txt = (syminfo.ticker != "AMZN" ? "NOTE: this chart is " + syminfo.ticker + ", not AMZN\n" : "") + syminfo.ticker + " - Nov & Dec" + (santa ? " + early Jan" : "") + (reinvest ? ", starting with $10,000" : ", $10,000 per trade") + "\n" + rules + "\n"
+    txt = (syminfo.ticker != "AMZN" ? "NOTE: this chart is " + syminfo.ticker + ", not AMZN\n" : "") +
+         syminfo.ticker + " - last 12 months, " + (reinvest ? "starting with $10,000, reinvesting winnings" : "$10,000 per trade") +
+         "\nRule: buy a red last candle" + (minDrop > 0 ? " falling " + str.tostring(minDrop, "#.##") + "%+" : "") + ", sell after the first candle next day\n"
     trP = 0.0
     trT = 0
     trW = 0
     teP = 0.0
     teT = 0
-    thP = 0.0
-    for i = 0 to 4
-        t  = array.get(rT, i)
-        p  = array.get(rP, i)
-        nt = array.get(eT, i)
-        np = array.get(eP, i)
-        hs = array.get(hStart, i)
-        he = array.get(hEnd, i)
-        hold = na(hs) ? 0.0 : math.floor(10000 / hs) * (he - hs)
-        trP += p
-        trT += t
-        trW += array.get(rW, i)
-        teP += np
-        teT += nt
-        thP += hold
-        txt += "\n" + str.tostring(2021 + i) + ":  YOUR RULE " + (t > 0 ? money(p) + " (" + str.tostring(t) + " trades, " + str.tostring(100.0 * array.get(rW, i) / t, "#") + "% wins)" : "no trades") +
-             "  |  EVERY NIGHT " + (nt > 0 ? money(np) + " (" + str.tostring(nt) + " trades)" : "no data") +
-             "  |  HOLD " + (na(hs) ? "no data" : money(hold))
+    n = array.size(keys)
+    if n > 0
+        for i = 0 to n - 1
+            k  = array.get(keys, i)
+            t  = array.get(rT, i)
+            p  = array.get(rP, i)
+            w  = array.get(rW, i)
+            nt = array.get(eT, i)
+            np = array.get(eP, i)
+            trP += p
+            trT += t
+            trW += w
+            teP += np
+            teT += nt
+            mName = str.format_time(timestamp(tz, math.floor(k / 100), k % 100, 15, 12, 0), "MMM yyyy", tz)
+            txt += "\n" + mName + ":  YOUR RULE " + (t > 0 ? money(p) + " (" + str.tostring(t) + " trades, " + str.tostring(100.0 * w / t, "#") + "% wins)" : "no trades") +
+                 "  |  EVERY NIGHT " + (nt > 0 ? money(np) : "-")
+    hold = na(hStart) ? 0.0 : math.floor(10000 / hStart) * (hEnd - hStart)
     txt += "\n\nTOTAL:  YOUR RULE " + money(trP) + " (" + str.tostring(trT) + " trades, " + (trT > 0 ? str.tostring(100.0 * trW / trT, "#") : "0") + "% wins)" +
          "  |  EVERY NIGHT " + money(teP) + " (" + str.tostring(teT) + " trades)" +
-         "  |  HOLD " + money(thP)
-    txt += "\nAverage per trade:  YOUR RULE " + (trT > 0 ? money(trP / trT) : "-") + "  |  EVERY NIGHT " + (teT > 0 ? money(teP / teT) : "-")
+         "  |  HOLD " + money(hold)
     txt += "\nFull trade history: Strategy Tester > List of Trades"
     label.new(bar_index, high, txt, style = label.style_label_left, color = trP >= 0 ? color.new(color.green, 10) : color.new(color.red, 10), textcolor = color.white, textalign = text.align_left)
